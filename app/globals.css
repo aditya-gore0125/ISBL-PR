@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  font-family: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #FBF6EF;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: #FBF6EF;
+  color: #332822;
+}
+
+::selection {
+  background: rgba(194, 157, 86, 0.15);
+  color: #332822;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@layer utilities {
+  .font-fraunces {
+    font-family: var(--font-fraunces), Georgia, serif;
+  }
+  .section-divider {
+    @apply relative mx-auto my-12 w-full max-w-4xl;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: #C29D5D;
+  }
+  .section-divider::before {
+    left: 0;
+  }
+  .section-divider::after {
+    right: 0;
+  }
+  .section-divider span {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    border: 1px solid #C29D5D;
+    color: #C29D5D;
+    background: #fff;
+  }
+  .image-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .image-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 48%, rgba(255,255,255,0) 100%);
+    transform: translateX(-120%);
+    pointer-events: none;
+    transition: transform 0.9s ease;
+  }
+  .image-shimmer:hover::after {
+    transform: translateX(120%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .image-shimmer::after {
+      transition: none;
+    }
+  }
+}
