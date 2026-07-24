@@ -4,6 +4,7 @@ const categorySchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
+    type: { type: String, enum: ['Ladies', 'Gents'], default: 'Ladies' },
     image: { type: String },
     displayOrder: { type: Number, default: 0 },
   },

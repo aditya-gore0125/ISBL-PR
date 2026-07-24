@@ -1,0 +1,17 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" rx="40" fill="#FBF6EF"/>
+  <rect x="70" y="70" width="1060" height="760" rx="36" fill="url(#paint0_linear)"/>
+  <circle cx="330" cy="280" r="180" fill="#DDA8B2" fill-opacity="0.36"/>
+  <circle cx="900" cy="310" r="170" fill="#C29D5D" fill-opacity="0.25"/>
+  <path d="M620 270C620 210 670 160 730 160H760C820 160 870 210 870 270V290C870 350 820 400 760 400H730C670 400 620 350 620 290V270Z" fill="#332822" fill-opacity="0.9"/>
+  <path d="M650 350H840C880 350 910 382 910 422V500C910 540 880 572 840 572H650C610 572 580 540 580 500V422C580 382 610 350 650 350Z" fill="#C29D5D" fill-opacity="0.75"/>
+  <path d="M560 620C560 560 610 510 670 510H760C820 510 870 560 870 620V648C870 708 820 758 760 758H670C610 758 560 708 560 648V620Z" fill="#7B2D3A" fill-opacity="0.75"/>
+  <ellipse cx="296" cy="630" rx="150" ry="110" fill="#FFFFFF" fill-opacity="0.75"/>
+  <path d="M250 622C250 572 286 536 336 536C386 536 422 572 422 622V648C422 698 386 734 336 734C286 734 250 698 250 648V622Z" fill="#332822" fill-opacity="0.84"/>
+  <defs>
+    <linearGradient id="paint0_linear" x1="70" y1="70" x2="1130" y2="830" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF9"/>
+      <stop offset="1" stop-color="#F4E8DB"/>
+    </linearGradient>
+  </defs>
+</svg>

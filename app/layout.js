@@ -16,7 +16,7 @@ const manrope = Manrope({
 });
 
 export const metadata = {
-  title: 'Nandini Jewellers | Fashion Jewelry Boutique',
+  title: 'Nandini Jewellers',
   description: 'Elegant fashion jewelry store with warm, premium design and seamless shopping experience.',
 };
 
