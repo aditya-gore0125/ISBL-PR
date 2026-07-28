@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 const fallbackCategoryGroups = {
@@ -81,11 +82,20 @@ function groupCategories(categories = []) {
 
 export default function Navbar({ categories = [] }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const router = useRouter();
   const categoryGroups = groupCategories(categories);
   const sections = [
     { title: 'Ladies', items: categoryGroups.Ladies.length ? categoryGroups.Ladies : fallbackCategoryGroups.Ladies },
     { title: 'Gents', items: categoryGroups.Gents.length ? categoryGroups.Gents : fallbackCategoryGroups.Gents },
   ];
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+    router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-gold/20 bg-ivory/95 backdrop-blur">
@@ -129,9 +139,18 @@ export default function Navbar({ categories = [] }) {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <button className="rounded-full border border-gold/20 bg-white/70 p-2.5 text-charcoal transition hover:border-gold hover:text-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" type="button" aria-label="Search">
-            <SearchIcon />
-          </button>
+          <form onSubmit={handleSearchSubmit} className="flex items-center rounded-full border border-gold/20 bg-white/70 px-2 py-1.5 text-charcoal shadow-sm">
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search"
+              aria-label="Search products"
+              className="w-24 bg-transparent px-2 text-sm outline-none sm:w-32"
+            />
+            <button className="rounded-full p-2 transition hover:bg-gold/10 hover:text-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" type="submit" aria-label="Search">
+              <SearchIcon />
+            </button>
+          </form>
           <Link href="/account" className="rounded-full border border-gold/20 bg-white/70 p-2.5 text-charcoal transition hover:border-gold hover:text-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="Account">
             <UserIcon />
           </Link>
