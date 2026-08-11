@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useCart } from '@/lib/CartContext';
 
 const fallbackCategoryGroups = {
   Ladies: [
@@ -83,7 +85,10 @@ function groupCategories(categories = []) {
 export default function Navbar({ categories = [] }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [accountOpen, setAccountOpen] = useState(false);
   const router = useRouter();
+  const { cartCount } = useCart();
+  const { data: session, status } = useSession();
   const categoryGroups = groupCategories(categories);
   const sections = [
     { title: 'Ladies', items: categoryGroups.Ladies.length ? categoryGroups.Ladies : fallbackCategoryGroups.Ladies },
@@ -151,13 +156,50 @@ export default function Navbar({ categories = [] }) {
               <SearchIcon />
             </button>
           </form>
-          <Link href="/account" className="rounded-full border border-gold/20 bg-white/70 p-2.5 text-charcoal transition hover:border-gold hover:text-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="Account">
-            <UserIcon />
-          </Link>
+          <div className="relative">
+            {status === 'authenticated' ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setAccountOpen((prev) => !prev)}
+                  className="flex items-center gap-2 rounded-full border border-gold/20 bg-white/70 px-3 py-2 text-sm font-medium text-charcoal transition hover:border-gold hover:text-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                  aria-label="Account menu"
+                >
+                  <UserIcon />
+                  <span className="max-w-[8rem] truncate">{session?.user?.name || 'Account'}</span>
+                </button>
+                {accountOpen ? (
+                  <div className="absolute right-0 top-12 w-48 rounded-[1rem] border border-gold/15 bg-white p-2 shadow-soft">
+                    <Link href="/account" className="block rounded-[0.7rem] px-3 py-2 text-sm text-charcoal transition hover:bg-gold/10 hover:text-gold-dark" onClick={() => setAccountOpen(false)}>
+                      Account
+                    </Link>
+                    <Link href="/account#orders" className="block rounded-[0.7rem] px-3 py-2 text-sm text-charcoal transition hover:bg-gold/10 hover:text-gold-dark" onClick={() => setAccountOpen(false)}>
+                      Orders
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAccountOpen(false);
+                        signOut({ callbackUrl: '/' });
+                      }}
+                      className="block w-full rounded-[0.7rem] px-3 py-2 text-left text-sm text-charcoal transition hover:bg-gold/10 hover:text-gold-dark"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <Link href="/login" className="flex items-center gap-2 rounded-full border border-gold/20 bg-white/70 px-3 py-2 text-sm font-medium text-charcoal transition hover:border-gold hover:text-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="Login">
+                <UserIcon />
+                <span>Login</span>
+              </Link>
+            )}
+          </div>
           <Link href="/cart" className="relative rounded-full border border-gold/20 bg-gold/10 p-2.5 text-charcoal transition hover:border-gold hover:text-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="Cart">
             <BagIcon />
             <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-maroon text-[0.65rem] font-semibold text-white">
-              0
+              {cartCount}
             </span>
           </Link>
         </div>
