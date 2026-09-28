@@ -15,7 +15,7 @@ const initialForm = {
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/account';
+  const redirectTo = searchParams.get('redirect') || '/';
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
@@ -196,7 +196,7 @@ function SignupForm() {
         <div className="mt-8 text-center text-sm text-charcoal/75">
           <p>
             Already have an account?{' '}
-            <Link href={`/login${redirectTo !== '/account' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="font-semibold text-gold-dark">
+            <Link href={`/login${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="font-semibold text-gold-dark">
               Sign in
             </Link>
           </p>

@@ -141,6 +141,9 @@ export default function Navbar({ categories = [] }) {
           </div>
           <Link href="/about" className="text-sm font-medium text-charcoal transition hover:text-gold-dark">About</Link>
           <Link href="/contact" className="text-sm font-medium text-charcoal transition hover:text-gold-dark">Contact</Link>
+          {status === 'authenticated' && session?.user?.role === 'admin' ? (
+            <Link href="/admin" className="text-sm font-medium text-charcoal transition hover:text-gold-dark">Admin Dashboard</Link>
+          ) : null}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -229,6 +232,11 @@ export default function Navbar({ categories = [] }) {
             <Link href="/contact" className="rounded-[0.85rem] px-3 py-2 text-sm font-medium text-charcoal transition hover:bg-gold/10 hover:text-gold-dark" onClick={() => setIsOpen(false)}>
               Contact
             </Link>
+            {status === 'authenticated' && session?.user?.role === 'admin' ? (
+              <Link href="/admin" className="rounded-[0.85rem] px-3 py-2 text-sm font-medium text-charcoal transition hover:bg-gold/10 hover:text-gold-dark" onClick={() => setIsOpen(false)}>
+                Admin Dashboard
+              </Link>
+            ) : null}
           </div>
         </div>
       )}

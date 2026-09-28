@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 
 const emptyAddress = {
   fullName: '',
@@ -33,6 +34,24 @@ function getStatusClasses(status) {
     returned: 'bg-red-100 text-red-700',
   };
   return map[key] || 'bg-slate-100 text-slate-700';
+}
+
+async function readJsonResponse(response, fallbackMessage) {
+  const contentType = response.headers.get('content-type') || '';
+  const statusText = `${response.status} ${response.statusText}`.trim();
+
+  if (!contentType.toLowerCase().includes('application/json')) {
+    const responseBody = await response.text();
+    console.error(`Account API returned non-JSON response (${statusText})`, responseBody);
+    throw new Error(`${fallbackMessage} (server returned ${response.status}).`);
+  }
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.message || `${fallbackMessage} (${response.status}).`);
+  }
+
+  return data;
 }
 
 function validateAddress(address) {
@@ -78,12 +97,8 @@ export default function AccountPage() {
           fetch('/api/orders/history'),
         ]);
 
-        const accountData = await accountRes.json();
+        const accountData = await readJsonResponse(accountRes, 'Unable to load profile.');
         const ordersData = await ordersRes.json();
-
-        if (!accountRes.ok) {
-          throw new Error(accountData?.message || 'Unable to load profile.');
-        }
 
         setProfile({
           name: accountData.user?.name || '',
@@ -124,11 +139,7 @@ export default function AccountPage() {
           },
         }),
       });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.message || 'Unable to update profile.');
-      }
+      const data = await readJsonResponse(response, 'Unable to update profile.');
 
       setProfile({ name: data.user.name, phone: data.user.phone || '' });
     } catch (error) {
@@ -181,11 +192,7 @@ export default function AccountPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ addresses: nextAddresses }),
       });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.message || 'Unable to save address.');
-      }
+      const data = await readJsonResponse(response, 'Unable to save address.');
 
       setAddresses(data.user.addresses || nextAddresses);
       setAddressForm(emptyAddress);
@@ -212,11 +219,7 @@ export default function AccountPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ addresses: nextAddresses }),
       });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.message || 'Unable to delete address.');
-      }
+      const data = await readJsonResponse(response, 'Unable to delete address.');
 
       setAddresses(data.user.addresses || nextAddresses);
     } catch (error) {
@@ -395,7 +398,7 @@ export default function AccountPage() {
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {order.items.map((item) => (
                     <div key={`${order._id}-${item.product}-${item.name}`} className="flex items-center gap-3 rounded-[1rem] bg-white/80 p-3">
-                      <img src={item.image || '/hero-placeholder.svg'} alt={item.name} className="h-14 w-14 rounded-[0.8rem] object-cover" />
+                      <Image src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} className="h-14 w-14 rounded-[0.8rem] object-cover" />
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-charcoal">{item.name}</p>
                         <p className="text-xs text-charcoal/70">Qty: {item.quantity}</p>

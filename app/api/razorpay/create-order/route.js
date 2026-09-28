@@ -20,9 +20,9 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const amount = Number(body.amount);
-    const receipt = body.receipt || `receipt_${Date.now()}`;
+    const receipt = String(body.receipt || `receipt_${Date.now()}`).trim();
 
-    if (!amount || amount <= 0) {
+    if (!Number.isInteger(amount) || amount <= 0 || amount > 100000000 || !/^[-_a-zA-Z0-9]{3,40}$/.test(receipt)) {
       return new Response(JSON.stringify({ message: 'Invalid payment amount.' }), { status: 400 });
     }
 

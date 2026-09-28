@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
+import { authOptions } from '@/lib/auth';
+
+export const metadata = {
+  title: 'Admin Dashboard',
+  description: 'Manage Nandini Jewellers products, orders, and categories.',
+};
 
 const navItems = [
   { href: '/admin', label: 'Overview' },
@@ -7,7 +15,10 @@ const navItems = [
   { href: '/admin/categories', label: 'Categories' },
 ];
 
-export default function AdminLayout({ children }) {
+export default async function AdminLayout({ children }) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user?.role !== 'admin') redirect('/login');
+
   return (
     <div className="min-h-screen bg-ivory text-charcoal">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">

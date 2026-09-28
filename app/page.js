@@ -6,6 +6,12 @@ import SectionDivider from '@/components/SectionDivider';
 import connectToDatabase from '@/lib/mongodb';
 import Category from '@/models/Category';
 import Product from '@/models/Product';
+import Image from 'next/image';
+
+export const metadata = {
+  title: 'Modern Jewelry for Every Celebration',
+  description: 'Discover elegant necklaces, earrings, bangles, and more at Nandini Jewellers.',
+};
 
 const fallbackCategories = [
   { name: 'Earrings', slug: 'earrings', type: 'Ladies', image: '/hero-placeholder.svg' },
@@ -78,7 +84,7 @@ export default async function HomePage() {
                 </div>
               </div>
               <div className="overflow-hidden rounded-[1.25rem] border border-gold/15 bg-white/70">
-                <img src="/hero-placeholder.svg" alt="Placeholder jewelry hero artwork" className="h-full min-h-[280px] w-full object-cover" />
+                <Image src="/hero-placeholder.svg" alt="Placeholder jewelry hero artwork" width={900} height={700} priority className="h-full min-h-[280px] w-full object-cover" />
               </div>
             </div>
           </div>
@@ -100,7 +106,7 @@ export default async function HomePage() {
                 {groupedCategories.Ladies.map((category) => (
                   <Link key={category.slug} href={`/category/${category.slug}`} className="group overflow-hidden rounded-[1.2rem] border border-gold/15 bg-white/80 shadow-soft transition hover:-translate-y-1">
                     <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-blush/30 via-ivory to-gold/10">
-                      <img src={category.image || '/hero-placeholder.svg'} alt={category.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                      <Image src={category.image || '/hero-placeholder.svg'} alt={category.name} width={600} height={450} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                     </div>
                     <div className="p-4">
                       <h4 className="font-fraunces text-xl text-charcoal">{category.name}</h4>
@@ -116,7 +122,7 @@ export default async function HomePage() {
                 {groupedCategories.Gents.map((category) => (
                   <Link key={category.slug} href={`/category/${category.slug}`} className="group overflow-hidden rounded-[1.2rem] border border-gold/15 bg-white/80 shadow-soft transition hover:-translate-y-1">
                     <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-blush/30 via-ivory to-gold/10">
-                      <img src={category.image || '/hero-placeholder.svg'} alt={category.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                      <Image src={category.image || '/hero-placeholder.svg'} alt={category.name} width={600} height={450} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                     </div>
                     <div className="p-4">
                       <h4 className="font-fraunces text-xl text-charcoal">{category.name}</h4>

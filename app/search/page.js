@@ -6,7 +6,7 @@ import connectToDatabase from '@/lib/mongodb';
 import Product from '@/models/Product';
 
 export const metadata = {
-  title: 'Search Jewelry | Nandini Jewellers',
+  title: 'Search Jewelry',
   description: 'Search jewelry products by name, description, or category at Nandini Jewellers.',
 };
 

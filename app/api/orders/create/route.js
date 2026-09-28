@@ -14,7 +14,17 @@ export async function POST(request) {
     const body = await request.json();
     const { orderId, paymentId, signature, shippingAddress, items, totalAmount } = body;
 
-    if (!orderId || !paymentId || !shippingAddress || !items || !items.length) {
+    const validAddress = shippingAddress && typeof shippingAddress === 'object'
+      && ['fullName', 'phone', 'addressLine1', 'city', 'state', 'pincode'].every((key) => String(shippingAddress[key] || '').trim())
+      && /^[6-9]\d{9}$/.test(String(shippingAddress.phone))
+      && /^[1-9][0-9]{5}$/.test(String(shippingAddress.pincode));
+    const validItems = Array.isArray(items) && items.length > 0 && items.length <= 50 && items.every((item) => (
+      item && item.productId && String(item.name || '').trim() && Number.isFinite(Number(item.price))
+      && Number(item.price) >= 0 && Number.isInteger(Number(item.quantity)) && Number(item.quantity) > 0 && Number(item.quantity) <= 20
+    ));
+    const validTotal = Number.isFinite(Number(totalAmount)) && Number(totalAmount) > 0 && Number(totalAmount) < 100000000;
+
+    if (!orderId || String(orderId).length > 100 || !paymentId || String(paymentId).length > 200 || !validAddress || !validItems || !validTotal) {
       return new Response(JSON.stringify({ message: 'Missing order payload.' }), { status: 400 });
     }
 
@@ -38,7 +48,7 @@ export async function POST(request) {
       paymentId,
       paymentStatus: 'paid',
       orderStatus: 'confirmed',
-      totalAmount,
+      totalAmount: Number(totalAmount),
     });
 
     return new Response(JSON.stringify({ order }), { status: 201 });

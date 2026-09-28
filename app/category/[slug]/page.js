@@ -40,16 +40,27 @@ function getCategoryAliases(slug, categoryDoc) {
   if (slug) aliases.push(slug.replace(/-/g, ' '));
 
   const slugMap = {
-    necklaces: ['Necklaces'],
     earrings: ['Earrings'],
+    'mangalsutra-pendant': ['Mangalsutra Pendant'],
+    'mangalsutra-chain': ['Mangalsutra Chain'],
+    'mangalsutra-set': ['Mangalsutra Set'],
+    necklace: ['Necklace'],
+    bangles: ['Bangles'],
+    bracelet: ['Bracelet'],
+    chains: ['Chains'],
+    nath: ['Nath'],
+    'hair-accessories': ['Hair Accessories'],
+    others: ['Others'],
+    chain: ['Chain'],
+    'bracelet-gents': ['Bracelet'],
+    kada: ['Kada'],
+    'earring-gents': ['Earring'],
+    'others-gents': ['Others'],
+    necklaces: ['Necklaces'],
     rings: ['Rings'],
-    bangles: ['Bangles & Bracelets'],
     bracelets: ['Bangles & Bracelets'],
     'bangles-bracelets': ['Bangles & Bracelets'],
     mangalsutra: ['Mangalsutra'],
-    'mangalsutra-pendant': ['Mangalsutra'],
-    'mangalsutra-chain': ['Mangalsutra'],
-    'mangalsutra-set': ['Mangalsutra'],
     anklets: ['Anklets'],
     'nose-pins': ['Nose Pins'],
     'combos-sets': ['Combos & Sets'],
@@ -189,10 +200,11 @@ function FilterPanel({ categorySlug, normalizedFilters, allMaterials, highestPri
 
 export async function generateMetadata({ params }) {
   const categorySlug = params?.slug;
+  await connectToDatabase();
   const category = await Category.findOne({ slug: categorySlug }).lean();
   const name = getCategoryDisplayName(categorySlug, category);
   return {
-    title: `${name} | Nandini Jewellers`,
+    title: name,
     description: `Browse ${name.toLowerCase()} at Nandini Jewellers with elegant designs, filters, and shareable search links.`,
   };
 }

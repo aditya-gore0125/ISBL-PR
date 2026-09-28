@@ -28,7 +28,7 @@ function getProductDescription(product) {
 
 function getProductTitle(product) {
   if (product?.metaTitle) return product.metaTitle;
-  return `${product?.name || 'Jewelry piece'} | Nandini Jewellers`;
+  return product?.name || 'Jewelry piece';
 }
 
 function buildJsonLd(product) {
