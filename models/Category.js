@@ -8,7 +8,7 @@ const categorySchema = new mongoose.Schema(
     image: { type: String },
     displayOrder: { type: Number, default: 0 },
   },
-  { timestamps: false }
+  { timestamps: true }
 );
 
 const Category = mongoose.models.Category || mongoose.model('Category', categorySchema);

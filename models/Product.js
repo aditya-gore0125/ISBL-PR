@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { PRODUCT_CATEGORIES, PRODUCT_TYPES } from '@/lib/productOptions';
+import { PRODUCT_CATEGORIES, PRODUCT_TYPES } from '../lib/productOptions.js';
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -42,6 +42,8 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+productSchema.index({ name: 'text', description: 'text', category: 'text' });
 
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 export default Product;

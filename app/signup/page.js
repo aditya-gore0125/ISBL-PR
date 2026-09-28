@@ -83,7 +83,7 @@ function SignupForm() {
 
       if (!response.ok) {
         const message = data?.message || 'Unable to create account.';
-        if (message.toLowerCase().includes('email')) {
+        if (response.status === 409) {
           setSubmitError('This email is already registered. Please sign in instead.');
         } else {
           setSubmitError(message);

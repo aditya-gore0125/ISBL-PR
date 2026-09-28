@@ -546,7 +546,7 @@ const sampleProducts = [
   },
 ];
 
-export async function GET() {
+async function seed() {
   if (process.env.NODE_ENV !== 'development') {
     return new Response('Seed route is only available in development.', { status: 403 });
   }
@@ -567,3 +567,6 @@ export async function GET() {
     return Response.json({ message: 'Unable to seed sample products.' }, { status: 500 });
   }
 }
+
+export const GET = seed;
+export const POST = seed;

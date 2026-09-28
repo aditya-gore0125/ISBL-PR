@@ -3,6 +3,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import connectToDatabase from '@/lib/mongodb';
+import { escapeRegExp } from '@/lib/utils';
 import Product from '@/models/Product';
 
 export const metadata = {
@@ -11,7 +12,7 @@ export const metadata = {
 };
 
 function normalizeQuery(query) {
-  return typeof query === 'string' ? query.trim() : '';
+  return typeof query === 'string' ? query.trim().slice(0, 60) : '';
 }
 
 export default async function SearchPage({ searchParams }) {
@@ -19,18 +20,27 @@ export default async function SearchPage({ searchParams }) {
 
   await connectToDatabase();
 
-  const products = query
-    ? await Product.find({
+  let products = [];
+  if (query) {
+    products = await Product.find({ $text: { $search: query } })
+      .sort({ score: { $meta: 'textScore' }, rating: -1, createdAt: -1 })
+      .limit(24)
+      .lean();
+
+    if (!products.length) {
+      const escapedQuery = escapeRegExp(query);
+      products = await Product.find({
         $or: [
-          { name: { $regex: query, $options: 'i' } },
-          { description: { $regex: query, $options: 'i' } },
-          { category: { $regex: query, $options: 'i' } },
+          { name: { $regex: escapedQuery, $options: 'i' } },
+          { description: { $regex: escapedQuery, $options: 'i' } },
+          { category: { $regex: escapedQuery, $options: 'i' } },
         ],
       })
         .sort({ rating: -1, createdAt: -1 })
         .limit(24)
-        .lean()
-    : [];
+        .lean();
+    }
+  }
 
   return (
     <>

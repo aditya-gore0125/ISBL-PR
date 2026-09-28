@@ -20,7 +20,7 @@ const fallbackCategories = [
   { name: 'Others', slug: 'others-gents', type: 'Gents', image: '/hero-placeholder.svg' },
 ];
 
-export async function GET() {
+async function seed() {
   if (process.env.NODE_ENV !== 'development') {
     return new Response('Category seed route is only available in development.', { status: 403 });
   }
@@ -49,3 +49,6 @@ export async function GET() {
     return Response.json({ message: 'Unable to seed sample categories.' }, { status: 500 });
   }
 }
+
+export const GET = seed;
+export const POST = seed;

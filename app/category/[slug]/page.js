@@ -3,14 +3,11 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import connectToDatabase from '@/lib/mongodb';
+import { escapeRegExp } from '@/lib/utils';
 import Category from '@/models/Category';
 import Product from '@/models/Product';
 
 const PAGE_SIZE = 24;
-
-function escapeRegExp(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 
 function normalizeSearchParams(searchParams = {}) {
   const sort = typeof searchParams.sort === 'string' ? searchParams.sort : 'featured';
