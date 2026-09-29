@@ -1,16 +1,17 @@
 import Link from 'next/link';
+import { getServerSession } from 'next-auth';
 import { notFound } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import { getCategories } from '@/lib/data';
 import Footer from '@/components/Footer';
+import ExpandableText from '@/components/ExpandableText';
 import ProductCard from '@/components/ProductCard';
 import ProductGallery from '@/components/ProductGallery';
+import ProductPurchasePanel from '@/components/ProductPurchasePanel';
+import ReviewForm from '@/components/ReviewForm';
+import { authOptions } from '@/lib/auth';
 import connectToDatabase from '@/lib/mongodb';
 import Product from '@/models/Product';
-
-function formatCurrency(value) {
-  return `₹${Number(value || 0).toLocaleString('en-IN')}`;
-}
 
 function formatDate(value) {
   const date = value ? new Date(value) : null;
@@ -34,9 +35,13 @@ function getProductTitle(product) {
 
 function buildJsonLd(product) {
   const images = Array.isArray(product?.images) && product.images.length ? product.images : [];
-  const price = Number(product?.discountPrice || product?.price || 0);
+  const basePrice = Number(product?.price || 0);
+  const discountPrice = Number(product?.discountPrice || 0);
+  const price = discountPrice > 0 && discountPrice < basePrice ? discountPrice : basePrice;
   const availability = Number(product?.stock || 0) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
   const ratingValue = Number(product?.rating || 0);
+  const reviewCount = Number(product?.numReviews || 0);
+  const siteUrl = String(process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/+$/, '');
 
   return {
     '@context': 'https://schema.org',
@@ -51,22 +56,21 @@ function buildJsonLd(product) {
       priceCurrency: 'INR',
       price,
       availability,
-      url: `https://example.com/product/${product?.slug}`,
+      url: `${siteUrl}/product/${product?.slug}`,
     },
-    aggregateRating: ratingValue > 0
-      ? {
+    ...(reviewCount > 0
+      ? { aggregateRating: {
           '@type': 'AggregateRating',
           ratingValue,
-          reviewCount: Number(product?.numReviews || 0),
-        }
-      : undefined,
+          reviewCount,
+        } }
+      : {}),
   };
 }
 
 export async function generateMetadata({ params }) {
   const slug = params?.slug;
   await connectToDatabase();
-  const categories = await getCategories();
   const product = await Product.findOne({ slug }).lean();
 
   if (!product) {
@@ -87,9 +91,6 @@ export async function generateMetadata({ params }) {
       description: getProductDescription(product),
       images: Array.isArray(product.images) && product.images.length ? [product.images[0]] : [],
     },
-    other: {
-      'application/ld+json': JSON.stringify(buildJsonLd(product)),
-    },
   };
 }
 
@@ -103,24 +104,28 @@ export default async function ProductDetailPage({ params }) {
     notFound();
   }
 
-  const relatedProducts = await Product.find({
-    category: product.category,
-    _id: { $ne: product._id },
-  })
-    .sort({ rating: -1, createdAt: -1 })
-    .limit(4)
-    .lean();
+  const [categories, session, relatedProducts] = await Promise.all([
+    getCategories(),
+    getServerSession(authOptions),
+    Product.find({
+      category: product.category,
+      type: product.type,
+      _id: { $ne: product._id },
+    })
+      .sort({ rating: -1, createdAt: -1 })
+      .limit(4)
+      .lean(),
+  ]);
 
-  const hasDiscount = Number(product.discountPrice) > 0 && Number(product.discountPrice) < Number(product.price);
   const stockLabel = Number(product.stock || 0) > 0 ? 'In Stock' : 'Out of Stock';
   const stockClass = Number(product.stock || 0) > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-maroon/10 text-maroon';
-  const descriptionWords = String(product.description || '').split(/\s+/).filter(Boolean);
-  const shouldShowReadMore = descriptionWords.length > 40;
   const ratingValue = Number(product.rating || 0);
   const reviewCount = Number(product.numReviews || 0);
+  const jsonLd = JSON.stringify(buildJsonLd(product)).replace(/</g, '\\u003c');
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <Navbar categories={categories} />
       <main className="min-h-screen bg-ivory">
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
@@ -147,50 +152,20 @@ export default async function ProductDetailPage({ params }) {
                 <span>{reviewCount} reviews</span>
               </div>
 
-              <div className="mt-6 flex items-center gap-3">
-                {hasDiscount ? (
-                  <>
-                    <span className="text-sm text-charcoal/60 line-through">{formatCurrency(product.price)}</span>
-                    <span className="font-fraunces text-3xl text-maroon">{formatCurrency(product.discountPrice)}</span>
-                  </>
-                ) : (
-                  <span className="font-fraunces text-3xl text-charcoal">{formatCurrency(product.price)}</span>
-                )}
-              </div>
-
-              <div className="mt-6 flex items-center gap-3">
-                <span className={`rounded-full px-3 py-1 text-sm font-semibold ${stockClass}`}>{stockLabel}</span>
-              </div>
-
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex items-center rounded-[0.95rem] border border-gold/20 bg-white/70 px-3 py-2">
-                  <label htmlFor="quantity" className="mr-3 text-sm font-semibold text-charcoal">Qty</label>
-                  <select id="quantity" name="quantity" defaultValue="1" className="bg-transparent text-sm text-charcoal outline-none">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <option key={value} value={value}>{value}</option>
-                    ))}
-                  </select>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // TODO: wire up cart action in Phase 5
-                    console.log('Add to cart', product.slug);
-                  }}
-                  className="flex-1 rounded-[0.95rem] bg-gold px-5 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-gold-dark"
-                >
-                  Add to Cart
-                </button>
-              </div>
-              <button type="button" className="mt-3 w-full rounded-[0.95rem] border border-gold/20 bg-white px-5 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-charcoal transition hover:border-gold hover:text-gold-dark sm:w-auto">
-                Buy Now
-              </button>
+              <span className={`mt-6 w-fit rounded-full px-3 py-1 text-sm font-semibold ${stockClass}`}>{stockLabel}</span>
+              <ProductPurchasePanel
+                productId={String(product._id)}
+                name={String(product.name || '')}
+                price={Number(product.price || 0)}
+                discountPrice={Number(product.discountPrice || 0)}
+                image={String(product.images?.[0] || '/hero-placeholder.svg')}
+                stock={Number(product.stock || 0)}
+              />
 
               <div className="mt-8 rounded-[1.2rem] border border-gold/15 bg-white/70 p-5 shadow-soft">
                 <h2 className="font-fraunces text-2xl text-charcoal">Description</h2>
-                <div className="mt-4 space-y-3 text-base leading-8 text-charcoal/75">
-                  <p>{shouldShowReadMore ? `${String(product.description || '').slice(0, 260)}...` : String(product.description || '')}</p>
-                  {shouldShowReadMore ? <button type="button" className="text-sm font-semibold text-gold-dark">Read more</button> : null}
+                <div className="mt-4 text-base leading-8 text-charcoal/75">
+                  <ExpandableText text={String(product.description || '')} />
                 </div>
               </div>
             </div>
@@ -206,16 +181,16 @@ export default async function ProductDetailPage({ params }) {
                     <td className="px-4 py-3">{product.material || 'Not specified'}</td>
                   </tr>
                   <tr className="bg-ivory/70">
-                    <th className="w-40 px-4 py-3 font-semibold text-charcoal">Plating</th>
-                    <td className="px-4 py-3">{product.plating || 'Not specified'}</td>
+                    <th className="w-40 px-4 py-3 font-semibold text-charcoal">Category</th>
+                    <td className="px-4 py-3">{product.category}</td>
                   </tr>
                   <tr className="bg-white/80">
-                    <th className="w-40 px-4 py-3 font-semibold text-charcoal">Dimensions</th>
-                    <td className="px-4 py-3">{product.dimensions || 'Not specified'}</td>
+                    <th className="w-40 px-4 py-3 font-semibold text-charcoal">Type</th>
+                    <td className="px-4 py-3">{product.type || 'Not specified'}</td>
                   </tr>
                   <tr className="bg-ivory/70">
-                    <th className="w-40 px-4 py-3 font-semibold text-charcoal">Weight</th>
-                    <td className="px-4 py-3">{product.weight || 'Not specified'}</td>
+                    <th className="w-40 px-4 py-3 font-semibold text-charcoal">Stock status</th>
+                    <td className="px-4 py-3">{stockLabel}</td>
                   </tr>
                 </tbody>
               </table>
@@ -257,13 +232,16 @@ export default async function ProductDetailPage({ params }) {
             </div>
 
             <div className="mt-8 rounded-[1rem] border border-gold/15 bg-ivory/50 p-5">
-              <h3 className="font-fraunces text-xl text-charcoal">Leave a review</h3>
-              <p className="mt-2 text-sm text-charcoal/70">Please log in to share your feedback.</p>
-              <div className="mt-4">
-                <Link href="/login" className="inline-flex rounded-[0.95rem] bg-gold px-4 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-gold-dark">
+              {session?.user?.id ? (
+                <>
+                  <h3 className="mb-4 font-fraunces text-xl text-charcoal">Leave a review</h3>
+                  <ReviewForm slug={String(product.slug)} />
+                </>
+              ) : (
+                <Link href={`/login?redirect=${encodeURIComponent(`/product/${product.slug}`)}`} className="inline-flex rounded-[0.95rem] bg-gold px-4 py-3 text-sm font-semibold uppercase text-white transition hover:bg-gold-dark">
                   Log in to leave a review
                 </Link>
-              </div>
+              )}
             </div>
           </section>
 

@@ -11,7 +11,7 @@ function formatPrice(value) {
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, cartTotal, removeFromCart, updateQuantity } = useCart();
+  const { items, cartCount, cartTotal, removeFromCart, updateQuantity } = useCart();
   const shipping = cartTotal >= 999 || cartTotal === 0 ? 0 : 99;
   const totalAmount = cartTotal + shipping;
 
@@ -37,8 +37,9 @@ export default function CartPage() {
             <div>
               <h1 className="font-fraunces text-3xl text-charcoal">Shopping cart</h1>
               <p className="mt-2 text-sm text-charcoal/70">Review your items and update quantities before checkout.</p>
+              <Link href="/" className="mt-3 inline-flex text-sm font-semibold text-gold-dark transition hover:text-gold">Continue Shopping</Link>
             </div>
-            <span className="rounded-full bg-ivory px-4 py-2 text-sm font-semibold text-charcoal">{items.length} items</span>
+            <span className="rounded-full bg-ivory px-4 py-2 text-sm font-semibold text-charcoal">{cartCount} item{cartCount === 1 ? '' : 's'}</span>
           </div>
 
           <div className="mt-8 space-y-4">
@@ -67,6 +68,7 @@ export default function CartPage() {
                       <button
                         type="button"
                         onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                        disabled={item.quantity >= 10}
                         className="h-9 w-9 rounded-full text-lg font-semibold text-charcoal transition hover:bg-gold/10"
                         aria-label={`Increase quantity for ${item.name}`}
                       >
