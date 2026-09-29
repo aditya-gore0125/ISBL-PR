@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import connectToDatabase from '@/lib/mongodb';
 import Order from '@/models/Order';
-import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 
 export const metadata = {
   title: 'Order Confirmation',
@@ -58,7 +58,7 @@ export default async function OrderConfirmationPage({ params }) {
                 <ul className="mt-3 space-y-3">
                   {order.items.map((item) => (
                     <li key={item.product.toString()} className="flex items-center gap-3">
-                      <Image src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} className="h-16 w-16 rounded-[1rem] object-cover" />
+                      <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} className="h-16 w-16 rounded-[1rem] object-cover" />
                       <div className="flex-1">
                         <p className="font-semibold text-charcoal">{item.name}</p>
                         <p className="text-sm text-charcoal/70">{item.quantity} × ₹{item.price.toLocaleString('en-IN')}</p>

@@ -1,15 +1,8 @@
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
+import { getAuthSecret } from '@/lib/env';
 
-const nextAuthSecret = process.env.NEXTAUTH_SECRET;
-
-if (!nextAuthSecret && process.env.NODE_ENV === 'production') {
-  throw new Error('NEXTAUTH_SECRET must be set in production.');
-}
-
-if (!nextAuthSecret) {
-  console.warn('NEXTAUTH_SECRET is not set; admin authentication may not work correctly.');
-}
+const nextAuthSecret = getAuthSecret();
 
 export async function middleware(request) {
   if (!request.nextUrl.pathname.startsWith('/admin')) {

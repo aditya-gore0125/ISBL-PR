@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/CartContext';
-import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 
 function formatPrice(value) {
   return `₹${Number(value).toLocaleString('en-IN')}`;
@@ -45,7 +45,7 @@ export default function CartPage() {
             {items.map((item) => (
               <div key={item.productId} className="grid gap-4 rounded-[1.25rem] border border-gold/15 bg-ivory/70 p-4 sm:grid-cols-[140px_1fr_180px]">
                 <div className="overflow-hidden rounded-[1.25rem] bg-white">
-                  <Image src={item.image || '/hero-placeholder.svg'} alt={item.name} width={160} height={160} className="h-full w-full object-cover" />
+                  <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={160} height={160} className="h-full w-full object-cover" />
                 </div>
                 <div className="space-y-3">
                   <div>

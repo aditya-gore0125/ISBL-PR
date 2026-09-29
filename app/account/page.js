@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 
 const emptyAddress = {
   fullName: '',
@@ -398,7 +398,7 @@ export default function AccountPage() {
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {order.items.map((item) => (
                     <div key={`${order._id}-${item.product}-${item.name}`} className="flex items-center gap-3 rounded-[1rem] bg-white/80 p-3">
-                      <Image src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} className="h-14 w-14 rounded-[0.8rem] object-cover" />
+                      <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} className="h-14 w-14 rounded-[0.8rem] object-cover" />
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-charcoal">{item.name}</p>
                         <p className="text-xs text-charcoal/70">Qty: {item.quantity}</p>

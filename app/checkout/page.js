@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useCart } from '@/lib/CartContext';
-import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 
 function formatPrice(value) {
   return `₹${Number(value).toLocaleString('en-IN')}`;
@@ -217,7 +217,7 @@ export default function CheckoutPage() {
           <div className="mt-6 space-y-4">
             {items.map((item) => (
               <div key={item.productId} className="flex items-center gap-4 rounded-[1rem] bg-ivory/60 p-3">
-                <Image src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} className="h-16 w-16 rounded-[1rem] object-cover" />
+                <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} className="h-16 w-16 rounded-[1rem] object-cover" />
                 <div className="flex-1">
                   <p className="font-semibold text-charcoal">{item.name}</p>
                   <p className="text-sm text-charcoal/70">{item.quantity} × ₹{item.price.toLocaleString('en-IN')}</p>

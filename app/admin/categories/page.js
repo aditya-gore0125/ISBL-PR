@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 
 const categoryTypes = ['Ladies', 'Gents'];
 
@@ -188,7 +188,7 @@ export default function AdminCategoriesPage() {
                     <tr key={category._id} className="border-t border-gold/10 align-middle">
                       <td className="px-4 py-3">
                         {category.image ? (
-                          <Image src={category.image} alt={category.name} width={48} height={48} className="h-12 w-12 rounded-lg object-cover" />
+                          <SafeImage src={category.image} alt={category.name} width={48} height={48} className="h-12 w-12 rounded-lg object-cover" />
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-ivory text-[10px] uppercase tracking-[0.2em] text-charcoal/50">No image</div>
                         )}

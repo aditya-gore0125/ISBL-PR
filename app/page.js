@@ -1,36 +1,17 @@
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import SafeImage from '@/components/SafeImage';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import SectionDivider from '@/components/SectionDivider';
 import connectToDatabase from '@/lib/mongodb';
-import Category from '@/models/Category';
+import { getCategories } from '@/lib/data';
 import Product from '@/models/Product';
-import Image from 'next/image';
 
 export const metadata = {
   title: 'Modern Jewelry for Every Celebration',
   description: 'Discover elegant necklaces, earrings, bangles, and more at Nandini Jewellers.',
 };
-
-const fallbackCategories = [
-  { name: 'Earrings', slug: 'earrings', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Mangalsutra Pendant', slug: 'mangalsutra-pendant', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Mangalsutra Chain', slug: 'mangalsutra-chain', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Mangalsutra Set', slug: 'mangalsutra-set', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Necklace', slug: 'necklace', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Bangles', slug: 'bangles', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Bracelet', slug: 'bracelet', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Chains', slug: 'chains', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Nath', slug: 'nath', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Hair Accessories', slug: 'hair-accessories', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Others', slug: 'others', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Chain', slug: 'chain', type: 'Gents', image: '/hero-placeholder.svg' },
-  { name: 'Bracelet', slug: 'bracelet-gents', type: 'Gents', image: '/hero-placeholder.svg' },
-  { name: 'Kada', slug: 'kada', type: 'Gents', image: '/hero-placeholder.svg' },
-  { name: 'Earring', slug: 'earring-gents', type: 'Gents', image: '/hero-placeholder.svg' },
-  { name: 'Others', slug: 'others-gents', type: 'Gents', image: '/hero-placeholder.svg' },
-];
 
 const testimonials = [
   { name: 'Meera', quote: 'Every piece feels premium and delicate. The delivery experience was seamless.', rating: 5 },
@@ -40,9 +21,8 @@ const testimonials = [
 
 function groupCategories(categories = []) {
   const grouped = { Ladies: [], Gents: [] };
-  const source = categories.length ? categories : fallbackCategories;
 
-  source.forEach((category) => {
+  categories.forEach((category) => {
     const bucket = String(category.type || '').trim() === 'Gents' ? 'Gents' : 'Ladies';
     grouped[bucket].push(category);
   });
@@ -53,7 +33,7 @@ function groupCategories(categories = []) {
 export default async function HomePage() {
   await connectToDatabase();
 
-  const categories = await Category.find({}).sort({ displayOrder: 1, name: 1 }).lean();
+  const categories = await getCategories();
   const featuredProducts = await Product.find({ isFeatured: true }).sort({ createdAt: -1 }).limit(4).lean();
   const newArrivals = await Product.find({ isNewArrival: true }).sort({ createdAt: -1 }).limit(4).lean();
 
@@ -61,7 +41,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Navbar categories={categories.length ? categories : fallbackCategories} />
+      <Navbar categories={categories} />
       <main className="min-h-screen bg-ivory">
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
           <div className="overflow-hidden rounded-[1.6rem] border border-gold/15 bg-gradient-to-br from-ivory via-white to-blush/30 shadow-soft">
@@ -84,7 +64,7 @@ export default async function HomePage() {
                 </div>
               </div>
               <div className="overflow-hidden rounded-[1.25rem] border border-gold/15 bg-white/70">
-                <Image src="/hero-placeholder.svg" alt="Placeholder jewelry hero artwork" width={900} height={700} priority className="h-full min-h-[280px] w-full object-cover" />
+                <SafeImage src="/hero-placeholder.svg" alt="Placeholder jewelry hero artwork" width={900} height={700} priority className="h-full min-h-[280px] w-full object-cover" />
               </div>
             </div>
           </div>
@@ -106,7 +86,7 @@ export default async function HomePage() {
                 {groupedCategories.Ladies.map((category) => (
                   <Link key={category.slug} href={`/category/${category.slug}`} className="group overflow-hidden rounded-[1.2rem] border border-gold/15 bg-white/80 shadow-soft transition hover:-translate-y-1">
                     <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-blush/30 via-ivory to-gold/10">
-                      <Image src={category.image || '/hero-placeholder.svg'} alt={category.name} width={600} height={450} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                      <SafeImage src={category.image || '/hero-placeholder.svg'} alt={category.name} width={600} height={450} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                     </div>
                     <div className="p-4">
                       <h4 className="font-fraunces text-xl text-charcoal">{category.name}</h4>
@@ -122,7 +102,7 @@ export default async function HomePage() {
                 {groupedCategories.Gents.map((category) => (
                   <Link key={category.slug} href={`/category/${category.slug}`} className="group overflow-hidden rounded-[1.2rem] border border-gold/15 bg-white/80 shadow-soft transition hover:-translate-y-1">
                     <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-blush/30 via-ivory to-gold/10">
-                      <Image src={category.image || '/hero-placeholder.svg'} alt={category.name} width={600} height={450} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                      <SafeImage src={category.image || '/hero-placeholder.svg'} alt={category.name} width={600} height={450} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                     </div>
                     <div className="p-4">
                       <h4 className="font-fraunces text-xl text-charcoal">{category.name}</h4>

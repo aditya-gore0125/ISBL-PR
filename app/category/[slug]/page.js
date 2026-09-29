@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import { getCategories } from '@/lib/data';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import connectToDatabase from '@/lib/mongodb';
@@ -212,6 +213,7 @@ export default async function CategoryPage({ params, searchParams }) {
 
   await connectToDatabase();
 
+  const categories = await getCategories();
   const categoryDoc = await Category.findOne({ slug: categorySlug }).lean();
   const categoryName = getCategoryDisplayName(categorySlug, categoryDoc);
   const categoryBaseQuery = buildCategoryQuery(categorySlug, categoryDoc);
@@ -242,7 +244,7 @@ export default async function CategoryPage({ params, searchParams }) {
 
   return (
     <>
-      <Navbar categories={[]} />
+      <Navbar categories={categories} />
       <main className="min-h-screen bg-ivory">
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
           <div className="mb-8 flex flex-col gap-4 rounded-[1.5rem] border border-gold/15 bg-gradient-to-br from-white via-ivory to-blush/30 p-8 shadow-soft md:flex-row md:items-end md:justify-between">

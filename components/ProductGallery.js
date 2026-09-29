@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 
 export default function ProductGallery({ images = [], alt = 'Jewelry product' }) {
   const [activeImage, setActiveImage] = useState(images[0] || '');
@@ -19,7 +19,7 @@ export default function ProductGallery({ images = [], alt = 'Jewelry product' })
   return (
     <div className="rounded-[1.4rem] border border-gold/15 bg-white/70 p-4 shadow-soft">
       <div className="image-shimmer overflow-hidden rounded-[1.1rem] border border-gold/15 bg-gradient-to-br from-blush/30 via-ivory to-gold/10">
-        <Image src={activeImage} alt={alt} width={900} height={1125} priority className="aspect-[4/5] w-full object-cover" />
+        <SafeImage src={activeImage} alt={alt} width={900} height={1125} priority className="aspect-[4/5] w-full object-cover" />
       </div>
       <div className="mt-4 grid grid-cols-4 gap-3">
         {safeImages.map((image) => {
@@ -31,7 +31,7 @@ export default function ProductGallery({ images = [], alt = 'Jewelry product' })
               onClick={() => setActiveImage(image)}
               className={`overflow-hidden rounded-[0.85rem] border ${isActive ? 'border-gold shadow-sm' : 'border-gold/15'} bg-white/80`}
             >
-              <Image src={image} alt={`${alt} thumbnail`} width={220} height={220} className="aspect-square w-full object-cover" />
+              <SafeImage src={image} alt={`${alt} thumbnail`} width={220} height={220} className="aspect-square w-full object-cover" />
             </button>
           );
         })}

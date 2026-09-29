@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 import { useRouter } from 'next/navigation';
 
 const orderPipeline = ['pending', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered'];
@@ -143,7 +143,7 @@ export default function AdminOrderDetailPage({ params }) {
               {order.items?.map((item) => (
                 <div key={`${item.product}-${item.name}`} className="flex items-center justify-between rounded-[1rem] border border-gold/10 bg-ivory p-3">
                   <div className="flex items-center gap-3">
-                    <Image src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} className="h-14 w-14 rounded-lg object-cover" />
+                    <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} className="h-14 w-14 rounded-lg object-cover" />
                     <div>
                       <p className="text-sm font-semibold text-charcoal">{item.name}</p>
                       <p className="text-xs text-charcoal/60">Qty: {item.quantity}</p>

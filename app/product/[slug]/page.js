@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import { getCategories } from '@/lib/data';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import ProductGallery from '@/components/ProductGallery';
@@ -65,6 +66,7 @@ function buildJsonLd(product) {
 export async function generateMetadata({ params }) {
   const slug = params?.slug;
   await connectToDatabase();
+  const categories = await getCategories();
   const product = await Product.findOne({ slug }).lean();
 
   if (!product) {
@@ -119,7 +121,7 @@ export default async function ProductDetailPage({ params }) {
 
   return (
     <>
-      <Navbar categories={[]} />
+      <Navbar categories={categories} />
       <main className="min-h-screen bg-ivory">
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
