@@ -5,8 +5,11 @@ import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import SectionDivider from '@/components/SectionDivider';
 import connectToDatabase from '@/lib/mongodb';
+import { CATEGORY_DEFS } from '@/lib/categoryMap';
 import { getCategories } from '@/lib/data';
 import Product from '@/models/Product';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Modern Jewelry for Every Celebration',
@@ -33,7 +36,8 @@ function groupCategories(categories = []) {
 export default async function HomePage() {
   await connectToDatabase();
 
-  const categories = await getCategories();
+  const loadedCategories = await getCategories();
+  const categories = loadedCategories.length ? loadedCategories : CATEGORY_DEFS;
   const featuredProducts = await Product.find({ isFeatured: true }).sort({ createdAt: -1 }).limit(4).lean();
   const newArrivals = await Product.find({ isNewArrival: true }).sort({ createdAt: -1 }).limit(4).lean();
 

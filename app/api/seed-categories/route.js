@@ -1,24 +1,12 @@
 import connectToDatabase from '@/lib/mongodb';
+import { CATEGORY_DEFS } from '@/lib/categoryMap';
 import Category from '@/models/Category';
 
-const fallbackCategories = [
-  { name: 'Earrings', slug: 'earrings', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Mangalsutra Pendant', slug: 'mangalsutra-pendant', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Mangalsutra Chain', slug: 'mangalsutra-chain', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Mangalsutra Set', slug: 'mangalsutra-set', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Necklace', slug: 'necklace', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Bangles', slug: 'bangles', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Bracelet', slug: 'bracelet', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Chains', slug: 'chains', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Nath', slug: 'nath', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Hair Accessories', slug: 'hair-accessories', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Others', slug: 'others', type: 'Ladies', image: '/hero-placeholder.svg' },
-  { name: 'Chain', slug: 'chain', type: 'Gents', image: '/hero-placeholder.svg' },
-  { name: 'Bracelet', slug: 'bracelet-gents', type: 'Gents', image: '/hero-placeholder.svg' },
-  { name: 'Kada', slug: 'kada', type: 'Gents', image: '/hero-placeholder.svg' },
-  { name: 'Earring', slug: 'earring-gents', type: 'Gents', image: '/hero-placeholder.svg' },
-  { name: 'Others', slug: 'others-gents', type: 'Gents', image: '/hero-placeholder.svg' },
-];
+const categoriesToSeed = CATEGORY_DEFS.map((category, displayOrder) => ({
+  ...category,
+  image: '/hero-placeholder.svg',
+  displayOrder,
+}));
 
 async function seed() {
   if (process.env.NODE_ENV !== 'development') {
@@ -29,7 +17,7 @@ async function seed() {
     await connectToDatabase();
     await Category.deleteMany({});
     await Category.bulkWrite(
-      fallbackCategories.map((category) => ({
+      categoriesToSeed.map((category) => ({
         updateOne: {
           filter: { slug: category.slug },
           update: { $set: category },
@@ -38,7 +26,7 @@ async function seed() {
       }))
     );
 
-    return new Response(`Seeded ${fallbackCategories.length} jewelry categories.`, { status: 201 });
+    return new Response(`Seeded ${categoriesToSeed.length} jewelry categories.`, { status: 201 });
   } catch (error) {
     console.error('Category seed failed', error);
     return Response.json({ message: 'Unable to seed sample categories.' }, { status: 500 });

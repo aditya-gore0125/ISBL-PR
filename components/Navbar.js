@@ -4,30 +4,8 @@ import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { CATEGORY_DEFS } from '@/lib/categoryMap';
 import { useCart } from '@/lib/CartContext';
-
-const fallbackCategoryGroups = {
-  Ladies: [
-    { name: 'Earrings', slug: 'earrings' },
-    { name: 'Mangalsutra Pendant', slug: 'mangalsutra-pendant' },
-    { name: 'Mangalsutra Chain', slug: 'mangalsutra-chain' },
-    { name: 'Mangalsutra Set', slug: 'mangalsutra-set' },
-    { name: 'Necklace', slug: 'necklace' },
-    { name: 'Bangles', slug: 'bangles' },
-    { name: 'Bracelet', slug: 'bracelet' },
-    { name: 'Chains', slug: 'chains' },
-    { name: 'Nath', slug: 'nath' },
-    { name: 'Hair Accessories', slug: 'hair-accessories' },
-    { name: 'Others', slug: 'others' },
-  ],
-  Gents: [
-    { name: 'Chain', slug: 'chain' },
-    { name: 'Bracelet', slug: 'bracelet' },
-    { name: 'Kada', slug: 'kada' },
-    { name: 'Earring', slug: 'earring' },
-    { name: 'Others', slug: 'others' },
-  ],
-};
 
 function MenuIcon() {
   return (
@@ -89,10 +67,10 @@ export default function Navbar({ categories = [] }) {
   const router = useRouter();
   const { cartCount } = useCart();
   const { data: session, status } = useSession();
-  const categoryGroups = groupCategories(categories);
+  const categoryGroups = groupCategories(categories.length ? categories : CATEGORY_DEFS);
   const sections = [
-    { title: 'Ladies', items: categoryGroups.Ladies.length ? categoryGroups.Ladies : fallbackCategoryGroups.Ladies },
-    { title: 'Gents', items: categoryGroups.Gents.length ? categoryGroups.Gents : fallbackCategoryGroups.Gents },
+    { title: 'Ladies', items: categoryGroups.Ladies },
+    { title: 'Gents', items: categoryGroups.Gents },
   ];
 
   const handleSearchSubmit = (event) => {

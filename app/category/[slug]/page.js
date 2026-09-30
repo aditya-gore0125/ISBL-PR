@@ -4,9 +4,10 @@ import { getCategories } from '@/lib/data';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import connectToDatabase from '@/lib/mongodb';
-import { escapeRegExp } from '@/lib/utils';
+import { getCategoryBySlug } from '@/lib/categoryMap';
 import Category from '@/models/Category';
 import Product from '@/models/Product';
+import { notFound } from 'next/navigation';
 
 const PAGE_SIZE = 24;
 
@@ -28,60 +29,12 @@ function normalizeSearchParams(searchParams = {}) {
     maxPrice: Number.isFinite(maxPrice) ? maxPrice : 0,
     materials: materials.filter(Boolean),
     inStockOnly,
-    page: Number.isFinite(page) && page > 0 ? page : 1,
+    page: Number.isFinite(page) && page > 0 ? Math.floor(page) : 1,
   };
 }
 
-function getCategoryAliases(slug, categoryDoc) {
-  const aliases = [];
-  if (categoryDoc?.name) aliases.push(categoryDoc.name);
-  if (slug) aliases.push(slug.replace(/-/g, ' '));
-
-  const slugMap = {
-    earrings: ['Earrings'],
-    'mangalsutra-pendant': ['Mangalsutra Pendant'],
-    'mangalsutra-chain': ['Mangalsutra Chain'],
-    'mangalsutra-set': ['Mangalsutra Set'],
-    necklace: ['Necklace'],
-    bangles: ['Bangles'],
-    bracelet: ['Bracelet'],
-    chains: ['Chains'],
-    nath: ['Nath'],
-    'hair-accessories': ['Hair Accessories'],
-    others: ['Others'],
-    chain: ['Chain'],
-    'bracelet-gents': ['Bracelet'],
-    kada: ['Kada'],
-    'earring-gents': ['Earring'],
-    'others-gents': ['Others'],
-    necklaces: ['Necklaces'],
-    rings: ['Rings'],
-    bracelets: ['Bangles & Bracelets'],
-    'bangles-bracelets': ['Bangles & Bracelets'],
-    mangalsutra: ['Mangalsutra'],
-    anklets: ['Anklets'],
-    'nose-pins': ['Nose Pins'],
-    'combos-sets': ['Combos & Sets'],
-    'combos-and-sets': ['Combos & Sets'],
-  };
-
-  const mapped = slugMap[String(slug || '').toLowerCase()];
-  if (mapped) aliases.push(...mapped);
-
-  return [...new Set(aliases.filter(Boolean))];
-}
-
-function buildCategoryQuery(slug, categoryDoc) {
-  const aliases = getCategoryAliases(slug, categoryDoc);
-  if (!aliases.length) {
-    return { category: { $regex: new RegExp(escapeRegExp(String(slug || '').replace(/-/g, ' ')), 'i') } };
-  }
-  const pattern = aliases.map((alias) => escapeRegExp(alias)).join('|');
-  return { category: { $regex: new RegExp(pattern, 'i') } };
-}
-
-function buildQuery(slug, categoryDoc, filters) {
-  const query = buildCategoryQuery(slug, categoryDoc);
+function buildQuery(category, filters) {
+  const query = { category: category.name, type: category.type };
 
   if (filters.minPrice > 0 || filters.maxPrice > 0) {
     query.price = {};
@@ -131,15 +84,23 @@ function buildFiltersUrl(slug, filters, page = 1) {
   return queryString ? `/category/${slug}?${queryString}` : `/category/${slug}`;
 }
 
-function getCategoryDisplayName(slug, category) {
-  if (category?.name) return category.name;
-  return slug
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+async function resolveCategory(slug) {
+  await connectToDatabase();
+  const [categoryDoc, categoryDefinition] = await Promise.all([
+    Category.findOne({ slug }).select('name type').lean(),
+    Promise.resolve(getCategoryBySlug(slug)),
+  ]);
+
+  const name = categoryDoc?.name || categoryDefinition?.name;
+  const type = categoryDoc?.type || categoryDefinition?.type;
+  return name && type ? { name, type } : null;
 }
 
-function FilterPanel({ categorySlug, normalizedFilters, allMaterials, highestPrice, clearFiltersHref }) {
+function FilterPanel({ idPrefix, categorySlug, normalizedFilters, allMaterials, highestPrice, clearFiltersHref }) {
+  const minPriceId = `${idPrefix}-minPrice`;
+  const maxPriceId = `${idPrefix}-maxPrice`;
+  const sortId = `${idPrefix}-sort`;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -149,12 +110,12 @@ function FilterPanel({ categorySlug, normalizedFilters, allMaterials, highestPri
 
       <form className="space-y-6" action={`/category/${categorySlug}`} method="get">
         <div>
-          <label htmlFor="minPrice" className="mb-2 block text-sm font-semibold text-charcoal">Min price</label>
-          <input id="minPrice" name="minPrice" type="number" min="0" defaultValue={normalizedFilters.minPrice || ''} className="w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal" />
+          <label htmlFor={minPriceId} className="mb-2 block text-sm font-semibold text-charcoal">Min price</label>
+          <input id={minPriceId} name="minPrice" type="number" min="0" defaultValue={normalizedFilters.minPrice || ''} className="w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal" />
         </div>
         <div>
-          <label htmlFor="maxPrice" className="mb-2 block text-sm font-semibold text-charcoal">Max price</label>
-          <input id="maxPrice" name="maxPrice" type="number" min="0" max={highestPrice || undefined} defaultValue={normalizedFilters.maxPrice || ''} className="w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal" />
+          <label htmlFor={maxPriceId} className="mb-2 block text-sm font-semibold text-charcoal">Max price</label>
+          <input id={maxPriceId} name="maxPrice" type="number" min="0" max={highestPrice || undefined} defaultValue={normalizedFilters.maxPrice || ''} className="w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal" />
         </div>
 
         <div>
@@ -178,8 +139,8 @@ function FilterPanel({ categorySlug, normalizedFilters, allMaterials, highestPri
         </label>
 
         <div>
-          <label htmlFor="sort" className="mb-2 block text-sm font-semibold text-charcoal">Sort</label>
-          <select id="sort" name="sort" defaultValue={normalizedFilters.sort} className="w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal">
+          <label htmlFor={sortId} className="mb-2 block text-sm font-semibold text-charcoal">Sort</label>
+          <select id={sortId} name="sort" defaultValue={normalizedFilters.sort} className="w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal">
             <option value="featured">Featured</option>
             <option value="price-asc">Price low-high</option>
             <option value="price-desc">Price high-low</option>
@@ -198,9 +159,10 @@ function FilterPanel({ categorySlug, normalizedFilters, allMaterials, highestPri
 
 export async function generateMetadata({ params }) {
   const categorySlug = params?.slug;
-  await connectToDatabase();
-  const category = await Category.findOne({ slug: categorySlug }).lean();
-  const name = getCategoryDisplayName(categorySlug, category);
+  const category = await resolveCategory(categorySlug);
+  if (!category) notFound();
+
+  const name = category.name;
   return {
     title: name,
     description: `Browse ${name.toLowerCase()} at Nandini Jewellers with elegant designs, filters, and shareable search links.`,
@@ -213,33 +175,30 @@ export default async function CategoryPage({ params, searchParams }) {
 
   await connectToDatabase();
 
-  const categories = await getCategories();
-  const categoryDoc = await Category.findOne({ slug: categorySlug }).lean();
-  const categoryName = getCategoryDisplayName(categorySlug, categoryDoc);
-  const categoryBaseQuery = buildCategoryQuery(categorySlug, categoryDoc);
+  const category = await resolveCategory(categorySlug);
+  if (!category) notFound();
 
-  const [allProductsForCategory, currentPageProducts] = await Promise.all([
-    Product.find(categoryBaseQuery).lean(),
-    Product.find(buildQuery(categorySlug, categoryDoc, normalizedFilters))
-      .sort(buildSort(normalizedFilters.sort))
-      .skip((normalizedFilters.page - 1) * PAGE_SIZE)
-      .limit(PAGE_SIZE)
-      .lean(),
+  const categories = await getCategories();
+  const categoryName = category.name;
+  const categoryBaseQuery = { category: category.name, type: category.type };
+  const filteredQuery = buildQuery(category, normalizedFilters);
+
+  const [materials, highestPriceProduct, filteredProductsCount] = await Promise.all([
+    Product.distinct('material', categoryBaseQuery),
+    Product.findOne(categoryBaseQuery).sort({ price: -1 }).select('price').lean(),
+    Product.countDocuments(filteredQuery),
   ]);
 
-  const allMaterials = [...new Set(allProductsForCategory.map((product) => product.material).filter(Boolean))].sort();
-  const highestPrice = allProductsForCategory.reduce((max, product) => Math.max(max, Number(product.price || 0)), 0);
-  const filteredProductsCount = allProductsForCategory.filter((product) => {
-    const passesMin = normalizedFilters.minPrice > 0 ? Number(product.price || 0) >= normalizedFilters.minPrice : true;
-    const passesMax = normalizedFilters.maxPrice > 0 ? Number(product.price || 0) <= normalizedFilters.maxPrice : true;
-    const passesMaterials = normalizedFilters.materials.length
-      ? normalizedFilters.materials.some((material) => material === product.material)
-      : true;
-    const passesStock = normalizedFilters.inStockOnly ? Number(product.stock || 0) > 0 : true;
-    return passesMin && passesMax && passesMaterials && passesStock;
-  }).length;
+  const allMaterials = materials.filter((material) => typeof material === 'string' && material).sort();
+  const highestPrice = Number(highestPriceProduct?.price || 0);
   const totalPages = Math.max(1, Math.ceil(filteredProductsCount / PAGE_SIZE));
-  const hasMore = normalizedFilters.page < totalPages;
+  const currentPage = Math.min(normalizedFilters.page, totalPages);
+  const currentPageProducts = await Product.find(filteredQuery)
+    .sort(buildSort(normalizedFilters.sort))
+    .skip((currentPage - 1) * PAGE_SIZE)
+    .limit(PAGE_SIZE)
+    .lean();
+  const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
   const clearFiltersHref = `/category/${categorySlug}`;
 
   return (
@@ -263,7 +222,7 @@ export default async function CategoryPage({ params, searchParams }) {
           <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
             <div className="space-y-4 lg:space-y-0">
               <aside className="hidden rounded-[1.25rem] border border-gold/15 bg-white/80 p-5 shadow-soft lg:block">
-                <FilterPanel categorySlug={categorySlug} normalizedFilters={normalizedFilters} allMaterials={allMaterials} highestPrice={highestPrice} clearFiltersHref={clearFiltersHref} />
+                <FilterPanel idPrefix="desktop" categorySlug={categorySlug} normalizedFilters={normalizedFilters} allMaterials={allMaterials} highestPrice={highestPrice} clearFiltersHref={clearFiltersHref} />
               </aside>
 
               <details className="group rounded-[1.25rem] border border-gold/15 bg-white/80 p-5 shadow-soft lg:hidden">
@@ -272,7 +231,7 @@ export default async function CategoryPage({ params, searchParams }) {
                   <span className="text-sm font-semibold text-gold-dark">Open</span>
                 </summary>
                 <div className="mt-4">
-                  <FilterPanel categorySlug={categorySlug} normalizedFilters={normalizedFilters} allMaterials={allMaterials} highestPrice={highestPrice} clearFiltersHref={clearFiltersHref} />
+                  <FilterPanel idPrefix="mobile" categorySlug={categorySlug} normalizedFilters={normalizedFilters} allMaterials={allMaterials} highestPrice={highestPrice} clearFiltersHref={clearFiltersHref} />
                 </div>
               </details>
             </div>
@@ -284,7 +243,7 @@ export default async function CategoryPage({ params, searchParams }) {
                   <p className="mt-1 text-sm text-charcoal/70">Sorted by {normalizedFilters.sort === 'featured' ? 'featured picks' : normalizedFilters.sort === 'price-asc' ? 'price low-to-high' : normalizedFilters.sort === 'price-desc' ? 'price high-to-low' : normalizedFilters.sort === 'newest' ? 'newest arrivals' : 'popularity'}</p>
                 </div>
                 <div className="rounded-full border border-gold/15 bg-ivory/70 px-3 py-2 text-sm text-charcoal/70">
-                  {normalizedFilters.page} / {totalPages}
+                  {currentPage} / {totalPages}
                 </div>
               </div>
 
@@ -304,12 +263,29 @@ export default async function CategoryPage({ params, searchParams }) {
                     ))}
                   </div>
 
-                  {hasMore && (
-                    <div className="mt-8 flex justify-center">
-                      <Link href={buildFiltersUrl(categorySlug, normalizedFilters, normalizedFilters.page + 1)} className="rounded-[0.95rem] border border-gold/20 bg-white px-5 py-3 text-sm font-semibold text-charcoal transition hover:border-gold hover:text-gold-dark">
-                        Load more
-                      </Link>
-                    </div>
+                  {totalPages > 1 && (
+                    <nav aria-label="Pagination" className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                      {currentPage > 1 ? (
+                        <Link href={buildFiltersUrl(categorySlug, normalizedFilters, currentPage - 1)} className="rounded-[0.75rem] border border-gold/20 bg-white px-3 py-2 text-sm font-semibold text-charcoal hover:border-gold">Previous</Link>
+                      ) : (
+                        <span aria-disabled="true" className="rounded-[0.75rem] border border-gold/10 bg-white/50 px-3 py-2 text-sm text-charcoal/40">Previous</span>
+                      )}
+                      {pageNumbers.map((pageNumber) => (
+                        <Link
+                          key={pageNumber}
+                          href={buildFiltersUrl(categorySlug, normalizedFilters, pageNumber)}
+                          aria-current={pageNumber === currentPage ? 'page' : undefined}
+                          className={`rounded-[0.75rem] border px-3 py-2 text-sm font-semibold ${pageNumber === currentPage ? 'border-gold bg-gold text-white' : 'border-gold/20 bg-white text-charcoal hover:border-gold'}`}
+                        >
+                          {pageNumber}
+                        </Link>
+                      ))}
+                      {currentPage < totalPages ? (
+                        <Link href={buildFiltersUrl(categorySlug, normalizedFilters, currentPage + 1)} className="rounded-[0.75rem] border border-gold/20 bg-white px-3 py-2 text-sm font-semibold text-charcoal hover:border-gold">Next</Link>
+                      ) : (
+                        <span aria-disabled="true" className="rounded-[0.75rem] border border-gold/10 bg-white/50 px-3 py-2 text-sm text-charcoal/40">Next</span>
+                      )}
+                    </nav>
                   )}
                 </>
               )}
