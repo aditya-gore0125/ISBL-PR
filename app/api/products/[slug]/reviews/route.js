@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
@@ -28,31 +29,107 @@ export async function POST(request, { params }) {
     }
 
     await connectToDatabase();
-    const product = await Product.findOne({ slug: params?.slug });
-    if (!product) {
-      return NextResponse.json({ error: 'Product not found.' }, { status: 404 });
-    }
-
+    const userId = new mongoose.Types.ObjectId(session.user.id);
     const review = {
-      user: session.user.id,
+      user: userId,
       name: session.user.name,
       rating,
       comment,
     };
-    const existingReview = product.reviews.find((entry) => String(entry.user) === String(session.user.id));
-    if (existingReview) {
-      existingReview.name = review.name;
-      existingReview.rating = review.rating;
-      existingReview.comment = review.comment;
-    } else {
-      product.reviews.push(review);
-    }
 
-    const reviewCount = product.reviews.length;
-    const ratingTotal = product.reviews.reduce((sum, entry) => sum + Number(entry.rating || 0), 0);
-    product.numReviews = reviewCount;
-    product.rating = reviewCount ? Number((ratingTotal / reviewCount).toFixed(1)) : 0;
-    await product.save();
+    const product = await Product.findOneAndUpdate(
+      { slug: params?.slug },
+      [
+        {
+          $set: {
+            reviews: {
+              $let: {
+                vars: { currentReviews: { $ifNull: ['$reviews', []] } },
+                in: {
+                  $cond: [
+                    {
+                      $in: [
+                        { $literal: userId },
+                        { $map: { input: '$$currentReviews', as: 'review', in: '$$review.user' } },
+                      ],
+                    },
+                    {
+                      $map: {
+                        input: '$$currentReviews',
+                        as: 'review',
+                        in: {
+                          $cond: [
+                            { $eq: ['$$review.user', { $literal: userId }] },
+                            { $mergeObjects: ['$$review', { $literal: review }] },
+                            '$$review',
+                          ],
+                        },
+                      },
+                    },
+                    {
+                      $concatArrays: [
+                        '$$currentReviews',
+                        [{ $mergeObjects: [{ $literal: review }, { createdAt: { $literal: new Date() } }] }],
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+        {
+          $set: {
+            numReviews: { $size: { $ifNull: ['$reviews', []] } },
+            rating: {
+              $let: {
+                vars: { currentReviews: { $ifNull: ['$reviews', []] } },
+                in: {
+                  $cond: [
+                    { $gt: [{ $size: '$$currentReviews' }, 0] },
+                    {
+                      $round: [
+                        {
+                          $divide: [
+                            {
+                              $reduce: {
+                                input: '$$currentReviews',
+                                initialValue: 0,
+                                in: {
+                                  $add: [
+                                    '$$value',
+                                    {
+                                      $convert: {
+                                        input: '$$this.rating',
+                                        to: 'double',
+                                        onError: 0,
+                                        onNull: 0,
+                                      },
+                                    },
+                                  ],
+                                },
+                              },
+                            },
+                            { $size: '$$currentReviews' },
+                          ],
+                        },
+                        1,
+                      ],
+                    },
+                    0,
+                  ],
+                },
+              },
+            },
+          },
+        },
+      ],
+      { new: true, runValidators: false }
+    );
+
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found.' }, { status: 404 });
+    }
 
     return NextResponse.json({ message: 'Review saved.', rating: product.rating, numReviews: product.numReviews });
   } catch (error) {

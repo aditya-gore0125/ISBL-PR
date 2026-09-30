@@ -553,13 +553,7 @@ async function seed() {
 
   try {
     await connectToDatabase();
-    const existingSlugs = sampleProducts.map((product) => product.slug);
-    const existingCount = await Product.countDocuments({ slug: { $in: existingSlugs } });
-
-    if (existingCount > 0) {
-      return new Response('Sample products already exist in the database.', { status: 200 });
-    }
-
+    await Product.deleteMany({});
     await Product.insertMany(sampleProducts);
     return new Response(`Seeded ${sampleProducts.length} sample jewelry products.`, { status: 201 });
   } catch (error) {

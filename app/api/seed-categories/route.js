@@ -27,12 +27,7 @@ async function seed() {
 
   try {
     await connectToDatabase();
-    const existingCount = await Category.countDocuments({ slug: { $in: fallbackCategories.map((category) => category.slug) } });
-
-    if (existingCount === fallbackCategories.length) {
-      return new Response('Sample categories already exist in the database.', { status: 200 });
-    }
-
+    await Category.deleteMany({});
     await Category.bulkWrite(
       fallbackCategories.map((category) => ({
         updateOne: {
