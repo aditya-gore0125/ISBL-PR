@@ -1,4 +1,8 @@
 import Razorpay from 'razorpay';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import connectToDatabase from '@/lib/mongodb';
+import { CheckoutCartError, getCheckoutPricing } from '@/lib/checkoutPricing';
 
 /**
  * Production setup:
@@ -9,6 +13,11 @@ import Razorpay from 'razorpay';
  */
 
 export async function POST(request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return Response.json({ message: 'Authentication required.' }, { status: 401 });
+  }
+
   const keyId = process.env.RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
@@ -19,28 +28,33 @@ export async function POST(request) {
   const razorpayClient = new Razorpay({ key_id: keyId, key_secret: keySecret });
   try {
     const body = await request.json();
-    const amount = Number(body.amount);
-    const receipt = String(body.receipt || `receipt_${Date.now()}`).trim();
-
-    if (!Number.isInteger(amount) || amount <= 0 || amount > 100000000 || !/^[-_a-zA-Z0-9]{3,40}$/.test(receipt)) {
-      return new Response(JSON.stringify({ message: 'Invalid payment amount.' }), { status: 400 });
+    if (!body || typeof body !== 'object' || Array.isArray(body)
+      || Object.keys(body).some((key) => key !== 'items')) {
+      return Response.json({ message: 'Invalid checkout payload.' }, { status: 400 });
     }
 
+    await connectToDatabase();
+    const pricing = await getCheckoutPricing(body.items);
     const order = await razorpayClient.orders.create({
-      amount,
+      amount: pricing.totalPaise,
       currency: 'INR',
-      receipt,
+      receipt: `checkout_${Date.now()}`,
       payment_capture: 1,
+      notes: { userId: session.user.id },
     });
 
-    return new Response(JSON.stringify({
+    return Response.json({
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
       key: keyId,
-    }));
+      serverTotal: pricing.total,
+    });
   } catch (error) {
+    if (error instanceof CheckoutCartError) {
+      return Response.json({ message: error.message }, { status: error.status });
+    }
     console.error('Razorpay create-order error', error);
-    return new Response(JSON.stringify({ message: 'Unable to create Razorpay order.' }), { status: 500 });
+    return Response.json({ message: 'Unable to create Razorpay order.' }, { status: 500 });
   }
 }

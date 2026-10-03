@@ -24,14 +24,14 @@ function formatPrice(value) {
 function getStatusClasses(status) {
   const key = String(status || '').toLowerCase();
   const map = {
-    pending: 'bg-slate-100 text-slate-700',
-    confirmed: 'bg-rose-100 text-rose-700',
-    packed: 'bg-yellow-100 text-yellow-700',
-    shipped: 'bg-yellow-100 text-yellow-700',
-    out_for_delivery: 'bg-yellow-100 text-yellow-700',
+    pending: 'bg-charcoal/5 text-charcoal/70',
+    confirmed: 'bg-blush/20 text-maroon',
+    packed: 'bg-gold/15 text-gold-dark',
+    shipped: 'bg-gold/15 text-gold-dark',
+    out_for_delivery: 'bg-gold/15 text-gold-dark',
     delivered: 'bg-emerald-100 text-emerald-700',
-    cancelled: 'bg-red-100 text-red-700',
-    returned: 'bg-red-100 text-red-700',
+    cancelled: 'bg-maroon/10 text-maroon',
+    returned: 'bg-maroon/10 text-maroon',
   };
   return map[key] || 'bg-slate-100 text-slate-700';
 }
@@ -389,7 +389,7 @@ export default function AccountPage() {
                     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusClasses(order.orderStatus)}`}>
                       {order.orderStatus}
                     </span>
-                    <Link href={`/order-confirmation/${order._id}`} className="text-sm font-semibold text-gold-dark">
+                    <Link href={`/account/orders/${order._id}`} className="text-sm font-semibold text-gold-dark">
                       View details
                     </Link>
                   </div>

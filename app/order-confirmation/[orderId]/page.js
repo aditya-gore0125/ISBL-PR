@@ -1,6 +1,11 @@
 import Link from 'next/link';
+import { notFound, redirect } from 'next/navigation';
+import mongoose from 'mongoose';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import connectToDatabase from '@/lib/mongodb';
 import Order from '@/models/Order';
+import User from '@/models/User';
 import SafeImage from '@/components/SafeImage';
 
 export const metadata = {
@@ -13,29 +18,26 @@ function formatPrice(value) {
 }
 
 export default async function OrderConfirmationPage({ params }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    redirect(`/login?redirect=/order-confirmation/${params.orderId}`);
+  }
+  if (!mongoose.isValidObjectId(params.orderId)) notFound();
+
   await connectToDatabase();
   const order = await Order.findById(params.orderId).lean();
+  if (!order) notFound();
 
-  if (!order) {
-    return (
-      <main className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="rounded-[1.5rem] border border-gold/15 bg-white/80 p-10 text-center shadow-soft">
-          <h1 className="font-fraunces text-3xl text-charcoal">Order not found</h1>
-          <p className="mt-4 text-sm text-charcoal/70">We could not locate that order. Please check the order URL or return to shopping.</p>
-          <Link href="/" className="mt-8 inline-flex rounded-full bg-gold px-6 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark">
-            Continue Shopping
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  const currentUser = await User.findById(session.user.id).select('role').lean();
+  const isOwner = order.user.toString() === session.user.id;
+  if (!isOwner && currentUser?.role !== 'admin') notFound();
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="rounded-[1.5rem] border border-gold/15 bg-white/90 p-8 shadow-soft">
         <div className="space-y-4 text-center">
           <h1 className="font-fraunces text-4xl text-charcoal">Thank you for your order!</h1>
-          <p className="text-sm text-charcoal/70">Your payment is confirmed and we’re getting your package ready.</p>
+          <p className="text-sm text-charcoal/70">{order.needsReview ? 'Your payment is confirmed. We are reviewing your order and will update its status shortly.' : 'Your payment is confirmed and we’re getting your package ready.'}</p>
           <p className="text-sm text-charcoal/75">Order number: <span className="font-semibold text-charcoal">{order._id}</span></p>
         </div>
 
@@ -48,7 +50,7 @@ export default async function OrderConfirmationPage({ params }) {
                 <p className="mt-2 leading-7">
                   {order.shippingAddress.fullName}<br />
                   {order.shippingAddress.addressLine1}<br />
-                  {order.shippingAddress.addressLine2 ? `${order.shippingAddress.addressLine2}\n` : null}
+                  {order.shippingAddress.addressLine2 ? <>{order.shippingAddress.addressLine2}<br /></> : null}
                   {order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}<br />
                   {order.shippingAddress.phone}
                 </p>
@@ -103,7 +105,7 @@ export default async function OrderConfirmationPage({ params }) {
                   </div>
                 ) : null}
               </div>
-              <Link href="/account/orders" className="inline-flex w-full justify-center rounded-full bg-gold px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark">
+              <Link href="/account#orders" className="inline-flex w-full justify-center rounded-full bg-gold px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark">
                 View Order History
               </Link>
             </div>
