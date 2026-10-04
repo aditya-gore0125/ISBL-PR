@@ -59,7 +59,7 @@ export default function CartPage() {
                       <button
                         type="button"
                         onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                        className="h-9 w-9 rounded-full text-lg font-semibold text-charcoal transition hover:bg-gold/10"
+                        className="h-11 w-11 rounded-full text-lg font-semibold text-charcoal transition hover:bg-gold/10"
                         aria-label={`Decrease quantity for ${item.name}`}
                       >
                         −
@@ -69,7 +69,7 @@ export default function CartPage() {
                         type="button"
                         onClick={() => updateQuantity(item.productId, item.quantity + 1)}
                         disabled={item.quantity >= 10}
-                        className="h-9 w-9 rounded-full text-lg font-semibold text-charcoal transition hover:bg-gold/10"
+                        className="h-11 w-11 rounded-full text-lg font-semibold text-charcoal transition hover:bg-gold/10"
                         aria-label={`Increase quantity for ${item.name}`}
                       >
                         +
@@ -83,7 +83,7 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={() => removeFromCart(item.productId)}
-                    className="mt-3 text-sm font-semibold text-maroon transition hover:text-maroon/80"
+                    className="mt-3 inline-flex min-h-11 min-w-11 items-center justify-end text-sm font-semibold text-maroon transition hover:text-maroon/80"
                   >
                     Remove
                   </button>
@@ -112,7 +112,7 @@ export default function CartPage() {
           <button
             type="button"
             onClick={() => router.push('/checkout')}
-            className="mt-8 w-full rounded-full bg-gold px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark"
+            className="mt-8 min-h-11 w-full rounded-full bg-gold px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark"
           >
             Proceed to Checkout
           </button>

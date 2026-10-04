@@ -2,6 +2,7 @@ import connectToDatabase from '../lib/mongodb.js';
 import Category from '../models/Category.js';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
+import Subscriber from '../models/Subscriber.js';
 import User from '../models/User.js';
 
 async function syncIndexes() {
@@ -13,8 +14,9 @@ async function syncIndexes() {
       Product.syncIndexes(),
       Category.syncIndexes(),
       Order.syncIndexes(),
+      Subscriber.syncIndexes(),
     ]);
-    console.log('MongoDB indexes synchronized for User, Product, Category, and Order.');
+    console.log('MongoDB indexes synchronized for User, Product, Category, Order, and Subscriber.');
   } finally {
     await connection.close();
   }

@@ -131,7 +131,7 @@ function LoginForm() {
         <div className="mt-8 text-center text-sm text-charcoal/75">
           <p>
             New here?{' '}
-            <Link href={`/signup${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="font-semibold text-gold-dark">
+            <Link href={`/signup${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="inline-flex min-h-11 items-center font-semibold text-gold-dark">
               Create an account
             </Link>
           </p>

@@ -1,9 +1,6 @@
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { notFound } from 'next/navigation';
-import Navbar from '@/components/Navbar';
-import { getCategories } from '@/lib/data';
-import Footer from '@/components/Footer';
 import ExpandableText from '@/components/ExpandableText';
 import ProductCard from '@/components/ProductCard';
 import ProductGallery from '@/components/ProductGallery';
@@ -104,8 +101,7 @@ export default async function ProductDetailPage({ params }) {
     notFound();
   }
 
-  const [categories, session, relatedProducts] = await Promise.all([
-    getCategories(),
+  const [session, relatedProducts] = await Promise.all([
     getServerSession(authOptions),
     Product.find({
       category: product.category,
@@ -126,7 +122,6 @@ export default async function ProductDetailPage({ params }) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <Navbar categories={categories} />
       <main className="min-h-screen bg-ivory">
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
@@ -260,7 +255,6 @@ export default async function ProductDetailPage({ params }) {
           </section>
         </section>
       </main>
-      <Footer />
     </>
   );
 }

@@ -17,7 +17,7 @@ export default function ProductCard({ product }) {
       <div className="flex flex-1 flex-col p-5">
         <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-gold">{product.category}</p>
         <h3 className="mt-2 font-fraunces text-xl text-charcoal">
-          <Link href={`/product/${product.slug}`} className="transition hover:text-gold-dark">{product.name}</Link>
+          <Link href={`/product/${product.slug}`} className="inline-flex min-h-11 items-center transition hover:text-gold-dark">{product.name}</Link>
         </h3>
         <p className="mt-2 line-clamp-2 text-sm leading-6 text-charcoal/70">{product.description}</p>
         <div className="mt-5 flex items-center justify-between gap-3">

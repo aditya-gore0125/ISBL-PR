@@ -1,7 +1,5 @@
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
 import SafeImage from '@/components/SafeImage';
-import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import SectionDivider from '@/components/SectionDivider';
 import connectToDatabase from '@/lib/mongodb';
@@ -44,9 +42,7 @@ export default async function HomePage() {
   const groupedCategories = groupCategories(categories);
 
   return (
-    <>
-      <Navbar categories={categories} />
-      <main className="min-h-screen bg-ivory">
+    <main className="min-h-screen bg-ivory">
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
           <div className="overflow-hidden rounded-[1.6rem] border border-gold/15 bg-gradient-to-br from-ivory via-white to-blush/30 shadow-soft">
             <div className="grid gap-6 p-8 sm:p-10 lg:grid-cols-[1.05fr_0.95fr] lg:p-12">
@@ -168,8 +164,6 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
-    </>
+    </main>
   );
 }

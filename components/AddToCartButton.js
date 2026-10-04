@@ -20,7 +20,7 @@ export default function AddToCartButton({ productId, name, image, price, stock }
       type="button"
       onClick={handleAddToCart}
       disabled={outOfStock}
-      className="rounded-full border border-gold/20 bg-gold px-3 py-2 text-sm font-semibold text-white transition hover:bg-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:bg-charcoal/30"
+      className="min-h-11 rounded-full border border-gold/20 bg-gold px-3 py-2 text-sm font-semibold text-white transition hover:bg-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:bg-charcoal/30"
       aria-live="polite"
     >
       {outOfStock ? 'Out of stock' : added ? 'Added ✓' : 'Add to Cart'}

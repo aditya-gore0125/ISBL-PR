@@ -247,7 +247,7 @@ export default function CheckoutPage() {
                       setSelectedAddressIndex(null);
                       setAddress({ fullName: '', phone: '', addressLine1: '', addressLine2: '', city: '', state: '', pincode: '' });
                     }}
-                    className={`rounded-full border px-4 py-2 text-sm font-semibold ${selectedAddressIndex === null ? 'border-gold bg-gold/10 text-gold-dark' : 'border-gold/20 bg-white text-charcoal'}`}
+                    className={`min-h-11 rounded-full border px-4 py-2 text-sm font-semibold ${selectedAddressIndex === null ? 'border-gold bg-gold/10 text-gold-dark' : 'border-gold/20 bg-white text-charcoal'}`}
                   >
                     Use a new address
                   </button>
@@ -299,7 +299,7 @@ export default function CheckoutPage() {
               type="button"
               onClick={handlePayNow}
               disabled={status === 'submitting' || status === 'processing'}
-              className="w-full rounded-full bg-gold px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark disabled:cursor-not-allowed disabled:opacity-60"
+              className="min-h-11 w-full rounded-full bg-gold px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark disabled:cursor-not-allowed disabled:opacity-60"
             >
               {status === 'failed' ? pendingCapture ? 'Retry order confirmation' : 'Retry payment' : status === 'submitting' ? 'Preparing payment...' : status === 'processing' ? 'Payment in progress...' : 'Pay Now'}
             </button>

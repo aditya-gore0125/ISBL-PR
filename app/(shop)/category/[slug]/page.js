@@ -1,7 +1,4 @@
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
-import { getCategories } from '@/lib/data';
-import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import connectToDatabase from '@/lib/mongodb';
 import { getCategoryBySlug } from '@/lib/categoryMap';
@@ -105,17 +102,17 @@ function FilterPanel({ idPrefix, categorySlug, normalizedFilters, allMaterials, 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="font-fraunces text-2xl text-charcoal">Filter</h2>
-        <Link href={clearFiltersHref} className="text-sm font-semibold text-gold-dark hover:text-gold">Clear</Link>
+        <Link href={clearFiltersHref} className="inline-flex min-h-11 items-center px-2 text-sm font-semibold text-gold-dark hover:text-gold">Clear</Link>
       </div>
 
       <form className="space-y-6" action={`/category/${categorySlug}`} method="get">
         <div>
           <label htmlFor={minPriceId} className="mb-2 block text-sm font-semibold text-charcoal">Min price</label>
-          <input id={minPriceId} name="minPrice" type="number" min="0" defaultValue={normalizedFilters.minPrice || ''} className="w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal" />
+          <input id={minPriceId} name="minPrice" type="number" min="0" defaultValue={normalizedFilters.minPrice || ''} className="min-h-11 w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal" />
         </div>
         <div>
           <label htmlFor={maxPriceId} className="mb-2 block text-sm font-semibold text-charcoal">Max price</label>
-          <input id={maxPriceId} name="maxPrice" type="number" min="0" max={highestPrice || undefined} defaultValue={normalizedFilters.maxPrice || ''} className="w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal" />
+          <input id={maxPriceId} name="maxPrice" type="number" min="0" max={highestPrice || undefined} defaultValue={normalizedFilters.maxPrice || ''} className="min-h-11 w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal" />
         </div>
 
         <div>
@@ -124,7 +121,7 @@ function FilterPanel({ idPrefix, categorySlug, normalizedFilters, allMaterials, 
             {allMaterials.map((material) => {
               const checked = normalizedFilters.materials.includes(material);
               return (
-                <label key={material} className="flex items-center gap-2 text-sm text-charcoal/80">
+                <label key={material} className="flex min-h-11 items-center gap-2 text-sm text-charcoal/80">
                   <input type="checkbox" name="material" value={material} defaultChecked={checked} className="h-4 w-4 rounded border-gold/20 text-gold focus:ring-gold" />
                   <span>{material}</span>
                 </label>
@@ -140,7 +137,7 @@ function FilterPanel({ idPrefix, categorySlug, normalizedFilters, allMaterials, 
 
         <div>
           <label htmlFor={sortId} className="mb-2 block text-sm font-semibold text-charcoal">Sort</label>
-          <select id={sortId} name="sort" defaultValue={normalizedFilters.sort} className="w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal">
+          <select id={sortId} name="sort" defaultValue={normalizedFilters.sort} className="min-h-11 w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal">
             <option value="featured">Featured</option>
             <option value="price-asc">Price low-high</option>
             <option value="price-desc">Price high-low</option>
@@ -162,7 +159,7 @@ export async function generateMetadata({ params }) {
   const category = await resolveCategory(categorySlug);
   if (!category) notFound();
 
-  const name = category.name;
+  const { name } = category;
   return {
     title: name,
     description: `Browse ${name.toLowerCase()} at Nandini Jewellers with elegant designs, filters, and shareable search links.`,
@@ -178,7 +175,6 @@ export default async function CategoryPage({ params, searchParams }) {
   const category = await resolveCategory(categorySlug);
   if (!category) notFound();
 
-  const categories = await getCategories();
   const categoryName = category.name;
   const categoryBaseQuery = { category: category.name, type: category.type };
   const filteredQuery = buildQuery(category, normalizedFilters);
@@ -202,9 +198,7 @@ export default async function CategoryPage({ params, searchParams }) {
   const clearFiltersHref = `/category/${categorySlug}`;
 
   return (
-    <>
-      <Navbar categories={categories} />
-      <main className="min-h-screen bg-ivory">
+    <main className="min-h-screen bg-ivory">
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
           <div className="mb-8 flex flex-col gap-4 rounded-[1.5rem] border border-gold/15 bg-gradient-to-br from-white via-ivory to-blush/30 p-8 shadow-soft md:flex-row md:items-end md:justify-between">
             <div>
@@ -226,7 +220,7 @@ export default async function CategoryPage({ params, searchParams }) {
               </aside>
 
               <details className="group rounded-[1.25rem] border border-gold/15 bg-white/80 p-5 shadow-soft lg:hidden">
-                <summary className="flex cursor-pointer list-none items-center justify-between">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between">
                   <span className="font-fraunces text-xl text-charcoal">Filters</span>
                   <span className="text-sm font-semibold text-gold-dark">Open</span>
                 </summary>
@@ -292,8 +286,6 @@ export default async function CategoryPage({ params, searchParams }) {
             </section>
           </div>
         </section>
-      </main>
-      <Footer />
-    </>
+    </main>
   );
 }

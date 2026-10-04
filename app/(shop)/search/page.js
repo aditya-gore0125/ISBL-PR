@@ -1,7 +1,4 @@
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
-import { getCategories } from '@/lib/data';
-import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import connectToDatabase from '@/lib/mongodb';
 import { escapeRegExp } from '@/lib/utils';
@@ -20,7 +17,6 @@ export default async function SearchPage({ searchParams }) {
   const query = normalizeQuery(searchParams?.q);
 
   await connectToDatabase();
-  const categories = await getCategories();
 
   let products = [];
   if (query) {
@@ -45,9 +41,7 @@ export default async function SearchPage({ searchParams }) {
   }
 
   return (
-    <>
-      <Navbar categories={categories} />
-      <main className="min-h-screen bg-ivory">
+    <main className="min-h-screen bg-ivory">
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
           <div className="mb-8 rounded-[1.5rem] border border-gold/15 bg-gradient-to-br from-white via-ivory to-blush/30 p-8 shadow-soft">
             <p className="text-sm font-semibold uppercase tracking-[0.35em] text-gold">Search results</p>
@@ -80,8 +74,6 @@ export default async function SearchPage({ searchParams }) {
             </div>
           )}
         </section>
-      </main>
-      <Footer />
-    </>
+    </main>
   );
 }
