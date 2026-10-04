@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import SafeImage from '@/components/SafeImage';
 
 const categoryTypes = ['Ladies', 'Gents'];
@@ -19,6 +19,8 @@ export default function AdminCategoriesPage() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
+  const imageFileInputRef = useRef(null);
 
   const loadCategories = async () => {
     try {
@@ -99,6 +101,26 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  const handleImageUpload = async (event) => {
+    const image = event.target.files?.[0];
+    event.target.value = '';
+    if (!image) return;
+
+    setImageUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', image);
+      const response = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message || 'Unable to upload image.');
+      setForm((current) => ({ ...current, image: data.secure_url }));
+    } catch (error) {
+      alert(error.message || 'Unable to upload image.');
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -148,15 +170,21 @@ export default function AdminCategoriesPage() {
               className="h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none focus:border-gold"
             />
           </label>
-          <label className="block xl:col-span-5">
-            <span className="mb-2 block text-sm font-medium text-charcoal/80">Image URL</span>
-            <input
-              value={form.image}
-              onChange={(event) => setForm((current) => ({ ...current, image: event.target.value }))}
-              className="h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none focus:border-gold"
-              placeholder="https://example.com/category.jpg"
-            />
-          </label>
+          <div className="flex flex-col gap-3 xl:col-span-5 sm:flex-row sm:items-end">
+            <label className="block flex-1">
+              <span className="mb-2 block text-sm font-medium text-charcoal/80">Image URL</span>
+              <input
+                value={form.image}
+                onChange={(event) => setForm((current) => ({ ...current, image: event.target.value }))}
+                className="h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none focus:border-gold"
+                placeholder="https://example.com/category.jpg"
+              />
+            </label>
+            <input ref={imageFileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="sr-only" />
+            <button type="button" disabled={imageUploading} onClick={() => imageFileInputRef.current?.click()} className="h-12 rounded-full border border-gold/25 bg-gold/5 px-5 text-sm font-semibold text-charcoal transition hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-60">
+              {imageUploading ? 'Uploading...' : 'Upload image'}
+            </button>
+          </div>
         </div>
 
         <div className="mt-5 flex justify-end">

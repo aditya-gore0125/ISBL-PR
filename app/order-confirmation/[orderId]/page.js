@@ -7,6 +7,7 @@ import connectToDatabase from '@/lib/mongodb';
 import Order from '@/models/Order';
 import User from '@/models/User';
 import SafeImage from '@/components/SafeImage';
+import { formatOrderId } from '@/lib/utils';
 
 export const metadata = {
   title: 'Order Confirmation',
@@ -38,7 +39,7 @@ export default async function OrderConfirmationPage({ params }) {
         <div className="space-y-4 text-center">
           <h1 className="font-fraunces text-4xl text-charcoal">Thank you for your order!</h1>
           <p className="text-sm text-charcoal/70">{order.needsReview ? 'Your payment is confirmed. We are reviewing your order and will update its status shortly.' : 'Your payment is confirmed and we’re getting your package ready.'}</p>
-          <p className="text-sm text-charcoal/75">Order number: <span className="font-semibold text-charcoal">{order._id}</span></p>
+          <p className="text-sm text-charcoal/75">Order number: <span className="font-semibold text-charcoal">{formatOrderId(order._id)}</span></p>
         </div>
 
         <div className="mt-10 grid gap-8 lg:grid-cols-[1.4fr_0.6fr]">

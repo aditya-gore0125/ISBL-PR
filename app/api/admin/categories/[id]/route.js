@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import Category from '@/models/Category';
+import Product from '@/models/Product';
 import { requireAdmin } from '@/lib/requireAdmin';
 
 function slugify(value) {
@@ -52,8 +53,13 @@ export async function DELETE(request, { params }) {
 
   try {
     await connectToDatabase();
-    const category = await Category.findByIdAndDelete(params.id).lean();
+    const category = await Category.findById(params.id).lean();
     if (!category) return NextResponse.json({ message: 'Category not found.' }, { status: 404 });
+    const productCount = await Product.countDocuments({ category: category.name, type: category.type });
+    if (productCount) {
+      return NextResponse.json({ message: 'Move or delete this category\'s products before deleting it.' }, { status: 409 });
+    }
+    await Category.findByIdAndDelete(params.id);
     return NextResponse.json({ message: 'Category deleted.' });
   } catch (error) {
     if (invalidId(error)) return NextResponse.json({ message: 'Invalid category id.' }, { status: 400 });

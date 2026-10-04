@@ -7,6 +7,7 @@ import connectToDatabase from '@/lib/mongodb';
 import Order from '@/models/Order';
 import User from '@/models/User';
 import SafeImage from '@/components/SafeImage';
+import { formatOrderId } from '@/lib/utils';
 
 const orderTimeline = ['pending', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered'];
 
@@ -37,7 +38,7 @@ export default async function AccountOrderPage({ params }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Order details</p>
-          <h1 className="mt-2 font-fraunces text-3xl text-charcoal">Order #{order._id.toString().slice(-6).toUpperCase()}</h1>
+          <h1 className="mt-2 font-fraunces text-3xl text-charcoal">Order {formatOrderId(order._id)}</h1>
           <p className="mt-2 text-sm text-charcoal/70">{formatPrice(order.totalAmount)} · Payment {order.paymentStatus}</p>
         </div>
         <Link href="/account#orders" className="rounded-full border border-gold/20 px-4 py-2 text-sm font-semibold text-charcoal">Back to orders</Link>

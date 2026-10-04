@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useState } from 'react';
 import SafeImage from '@/components/SafeImage';
+import { formatOrderId } from '@/lib/utils';
 
 const emptyAddress = {
   fullName: '',
@@ -382,7 +383,7 @@ export default function AccountPage() {
               <div key={order._id} className="rounded-[1.25rem] border border-gold/15 bg-ivory/70 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm text-charcoal/60">Order #{String(order._id).slice(-6).toUpperCase()}</p>
+                    <p className="text-sm text-charcoal/60">{formatOrderId(order._id)}</p>
                     <p className="mt-1 text-lg font-semibold text-charcoal">{formatPrice(order.totalAmount)}</p>
                   </div>
                   <div className="flex items-center gap-3">
