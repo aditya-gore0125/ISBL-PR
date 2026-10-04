@@ -152,7 +152,7 @@ export default function AdminOrderDetailPage({ params }) {
               {order.items?.map((item) => (
                 <div key={`${item.product}-${item.name}`} className="flex items-center justify-between rounded-[1rem] border border-gold/10 bg-ivory p-3">
                   <div className="flex items-center gap-3">
-                    <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} className="h-14 w-14 rounded-lg object-cover" />
+                    <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} sizes="56px" className="h-14 w-14 rounded-lg object-cover" />
                     <div>
                       <p className="text-sm font-semibold text-charcoal">{item.name}</p>
                       <p className="text-xs text-charcoal/60">Qty: {item.quantity}</p>
@@ -214,7 +214,7 @@ export default function AdminOrderDetailPage({ params }) {
               <p className="mt-1 text-xl font-fraunces text-charcoal">{formatPrice(order.totalAmount)}</p>
             </div>
 
-            {error ? <div className="rounded-[1rem] border border-maroon/20 bg-maroon/5 px-4 py-3 text-sm text-maroon">{error}</div> : null}
+            {error ? <div role="alert" aria-live="polite" className="rounded-[1rem] border border-maroon/20 bg-maroon/5 px-4 py-3 text-sm text-maroon">{error}</div> : null}
             {success ? <div role="status" className="rounded-[1rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{success}</div> : null}
 
             <button type="submit" disabled={saving} className="w-full rounded-full bg-gold px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark disabled:cursor-not-allowed disabled:opacity-70">

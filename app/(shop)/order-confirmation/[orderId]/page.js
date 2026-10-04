@@ -12,6 +12,7 @@ import { formatOrderId } from '@/lib/utils';
 export const metadata = {
   title: 'Order Confirmation',
   description: 'Review your Nandini Jewellers order confirmation and delivery details.',
+  robots: { index: false, follow: false },
 };
 
 function formatPrice(value) {
@@ -61,7 +62,7 @@ export default async function OrderConfirmationPage({ params }) {
                 <ul className="mt-3 space-y-3">
                   {order.items.map((item) => (
                     <li key={item.product.toString()} className="flex items-center gap-3">
-                      <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} className="h-16 w-16 rounded-[1rem] object-cover" />
+                      <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} sizes="64px" className="h-16 w-16 rounded-[1rem] object-cover" />
                       <div className="flex-1">
                         <p className="font-semibold text-charcoal">{item.name}</p>
                         <p className="text-sm text-charcoal/70">{item.quantity} × ₹{item.price.toLocaleString('en-IN')}</p>

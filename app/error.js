@@ -1,6 +1,12 @@
 'use client';
 
-export default function Error({ reset }) {
+import { useEffect } from 'react';
+
+export default function Error({ error, reset }) {
+  useEffect(() => {
+    console.error('Storefront route error:', error);
+  }, [error]);
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-ivory px-4 py-16 text-center">
       <div className="max-w-lg rounded-[1.5rem] border border-gold/15 bg-white/80 p-10 shadow-soft">

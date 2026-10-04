@@ -119,7 +119,7 @@ function SignupForm() {
               className="mt-2 h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none transition focus:border-gold"
               placeholder="Your name"
             />
-            {errors.name ? <p className="mt-1 text-xs text-maroon">{errors.name}</p> : null}
+            {errors.name ? <p role="alert" aria-live="polite" className="mt-1 text-xs text-maroon">{errors.name}</p> : null}
           </label>
 
           <div className="grid gap-5 sm:grid-cols-2">
@@ -133,7 +133,7 @@ function SignupForm() {
                 className="mt-2 h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none transition focus:border-gold"
                 placeholder="name@example.com"
               />
-              {errors.email ? <p className="mt-1 text-xs text-maroon">{errors.email}</p> : null}
+              {errors.email ? <p role="alert" aria-live="polite" className="mt-1 text-xs text-maroon">{errors.email}</p> : null}
             </label>
 
             <label className="block">
@@ -146,7 +146,7 @@ function SignupForm() {
                 className="mt-2 h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none transition focus:border-gold"
                 placeholder="9876543210"
               />
-              {errors.phone ? <p className="mt-1 text-xs text-maroon">{errors.phone}</p> : null}
+              {errors.phone ? <p role="alert" aria-live="polite" className="mt-1 text-xs text-maroon">{errors.phone}</p> : null}
             </label>
           </div>
 
@@ -161,7 +161,7 @@ function SignupForm() {
                 className="mt-2 h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none transition focus:border-gold"
                 placeholder="Create a password"
               />
-              {errors.password ? <p className="mt-1 text-xs text-maroon">{errors.password}</p> : null}
+              {errors.password ? <p role="alert" aria-live="polite" className="mt-1 text-xs text-maroon">{errors.password}</p> : null}
             </label>
 
             <label className="block">
@@ -174,12 +174,12 @@ function SignupForm() {
                 className="mt-2 h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none transition focus:border-gold"
                 placeholder="Re-enter password"
               />
-              {errors.confirmPassword ? <p className="mt-1 text-xs text-maroon">{errors.confirmPassword}</p> : null}
+              {errors.confirmPassword ? <p role="alert" aria-live="polite" className="mt-1 text-xs text-maroon">{errors.confirmPassword}</p> : null}
             </label>
           </div>
 
           {submitError ? (
-            <div className="rounded-[1rem] border border-maroon/25 bg-maroon/5 px-4 py-3 text-sm text-maroon">
+            <div role="alert" aria-live="polite" className="rounded-[1rem] border border-maroon/25 bg-maroon/5 px-4 py-3 text-sm text-maroon">
               {submitError}
             </div>
           ) : null}

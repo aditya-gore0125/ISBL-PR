@@ -1,21 +1,12 @@
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
+import { accountSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 import User from '@/models/User';
 import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
-
-const ADDRESS_FIELDS = [
-  'fullName',
-  'phone',
-  'addressLine1',
-  'addressLine2',
-  'city',
-  'state',
-  'pincode',
-  'isDefault',
-];
 
 function serializeUser(user) {
   return {
@@ -26,41 +17,6 @@ function serializeUser(user) {
     role: user.role,
     addresses: user.addresses || [],
   };
-}
-
-function validateAddresses(addresses) {
-  if (!Array.isArray(addresses) || addresses.length > 10) return null;
-
-  const normalized = [];
-  for (const address of addresses) {
-    if (!address || typeof address !== 'object' || Array.isArray(address)) return null;
-
-    const cleanAddress = {};
-    for (const field of ADDRESS_FIELDS) {
-      if (field === 'isDefault') continue;
-      const value = address[field];
-      if (field === 'addressLine2' && value === undefined) {
-        cleanAddress[field] = '';
-      } else if (typeof value !== 'string') {
-        return null;
-      } else {
-        cleanAddress[field] = value.trim();
-      }
-    }
-
-    const requiredFields = ['fullName', 'phone', 'addressLine1', 'city', 'state', 'pincode'];
-    if (requiredFields.some((field) => !cleanAddress[field])) return null;
-    if (cleanAddress.fullName.length > 100 || cleanAddress.addressLine1.length > 200
-      || cleanAddress.addressLine2.length > 200 || cleanAddress.city.length > 100
-      || cleanAddress.state.length > 100) return null;
-    if (!/^[6-9]\d{9}$/.test(cleanAddress.phone) || !/^[1-9][0-9]{5}$/.test(cleanAddress.pincode)) return null;
-
-    if (address.isDefault !== undefined && typeof address.isDefault !== 'boolean') return null;
-    cleanAddress.isDefault = address.isDefault === true;
-    normalized.push(cleanAddress);
-  }
-
-  return normalized.filter((address) => address.isDefault).length <= 1 ? normalized : null;
 }
 
 async function getAuthenticatedSession() {
@@ -96,33 +52,17 @@ export async function PUT(request) {
       return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
     }
 
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ message: 'Request body must be valid JSON.' }, { status: 400 });
-    }
+    const { data: body, response } = await validateJsonRequest(request, accountSchema);
+    if (response) return response;
 
     const update = {};
     if (body?.profile !== undefined) {
-      const name = String(body.profile?.name || '').trim();
-      const phone = String(body.profile?.phone || '').trim();
-
-      if (name.length < 2 || name.length > 100 || phone.length > 20) {
-        return NextResponse.json({ message: 'Enter a valid name and phone number.' }, { status: 400 });
-      }
-
-      update.name = name;
-      update.phone = phone;
+      update.name = body.profile.name;
+      update.phone = body.profile.phone;
     }
 
     if (body?.addresses !== undefined) {
-      const addresses = validateAddresses(body.addresses);
-      if (!addresses) {
-        return NextResponse.json({ message: 'Invalid addresses payload.' }, { status: 400 });
-      }
-
-      update.addresses = addresses;
+      update.addresses = body.addresses;
     }
 
     if (!Object.keys(update).length) {

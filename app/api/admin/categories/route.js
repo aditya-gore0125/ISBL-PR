@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import Category from '@/models/Category';
+import { categoryCreateSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 import { requireAdmin } from '@/lib/requireAdmin';
 
 function slugify(value) {
@@ -30,19 +32,19 @@ export async function POST(request) {
   if (auth.response) return auth.response;
 
   try {
-    const body = await request.json();
-    const name = typeof body.name === 'string' ? body.name.trim() : '';
+    const { data: body, response } = await validateJsonRequest(request, categoryCreateSchema);
+    if (response) return response;
+    const { name, type, image, displayOrder } = body;
     const slug = slugify(body.slug || name);
-    if (!name || !slug) return NextResponse.json({ message: 'Name and slug are required.' }, { status: 400 });
-    if (body.type && !['Ladies', 'Gents'].includes(body.type)) return NextResponse.json({ message: 'Category type is invalid.' }, { status: 400 });
+    if (!slug) return NextResponse.json({ message: 'Name and slug are required.' }, { status: 400 });
 
     await connectToDatabase();
     const category = await Category.create({
       name,
       slug,
-      type: body.type || 'Ladies',
-      image: typeof body.image === 'string' ? body.image.trim() : '',
-      displayOrder: Number.isFinite(Number(body.displayOrder)) ? Number(body.displayOrder) : 0,
+      type,
+      image,
+      displayOrder,
     });
     return NextResponse.json({ category }, { status: 201 });
   } catch (error) {

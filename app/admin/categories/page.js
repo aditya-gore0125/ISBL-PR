@@ -180,7 +180,7 @@ export default function AdminCategoriesPage() {
                 placeholder="https://example.com/category.jpg"
               />
             </label>
-            <input ref={imageFileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="sr-only" />
+            <input ref={imageFileInputRef} type="file" accept="image/*" onChange={handleImageUpload} aria-label="Upload category image" className="sr-only" />
             <button type="button" disabled={imageUploading} onClick={() => imageFileInputRef.current?.click()} className="h-12 rounded-full border border-gold/25 bg-gold/5 px-5 text-sm font-semibold text-charcoal transition hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-60">
               {imageUploading ? 'Uploading...' : 'Upload image'}
             </button>
@@ -216,7 +216,7 @@ export default function AdminCategoriesPage() {
                     <tr key={category._id} className="border-t border-gold/10 align-middle">
                       <td className="px-4 py-3">
                         {category.image ? (
-                          <SafeImage src={category.image} alt={category.name} width={48} height={48} className="h-12 w-12 rounded-lg object-cover" />
+                          <SafeImage src={category.image} alt={category.name} width={48} height={48} sizes="48px" className="h-12 w-12 rounded-lg object-cover" />
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-ivory text-[10px] uppercase tracking-[0.2em] text-charcoal/50">No image</div>
                         )}

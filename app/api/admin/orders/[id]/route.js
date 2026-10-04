@@ -4,6 +4,8 @@ import connectToDatabase from '@/lib/mongodb';
 import { requireAdmin } from '@/lib/requireAdmin';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
+import { adminOrderUpdateSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 
 const orderPipeline = ['pending', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered'];
 const exceptionStatuses = ['cancelled', 'returned'];
@@ -49,20 +51,9 @@ export async function PUT(request, { params }) {
   if (auth.response) return auth.response;
 
   try {
-    const body = await request.json();
-    if (!body || typeof body !== 'object' || Array.isArray(body)) {
-      return NextResponse.json({ message: 'Request body must be a JSON object.' }, { status: 400 });
-    }
-    const orderStatus = typeof body.orderStatus === 'string' ? body.orderStatus.trim() : '';
-    if (!orderStatuses.includes(orderStatus)) {
-      return NextResponse.json({ message: 'Order status is invalid.' }, { status: 400 });
-    }
-    if (typeof body.trackingId !== 'undefined' && typeof body.trackingId !== 'string') {
-      return NextResponse.json({ message: 'Tracking ID must be text.' }, { status: 400 });
-    }
-    if (typeof body.courierPartner !== 'undefined' && typeof body.courierPartner !== 'string') {
-      return NextResponse.json({ message: 'Courier partner must be text.' }, { status: 400 });
-    }
+    const { data: body, response } = await validateJsonRequest(request, adminOrderUpdateSchema);
+    if (response) return response;
+    const { orderStatus } = body;
 
     await connectToDatabase();
     const currentOrder = await Order.findById(params.id);

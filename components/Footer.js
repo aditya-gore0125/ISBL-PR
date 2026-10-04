@@ -103,7 +103,7 @@ export default function Footer() {
               <button type="submit" disabled={submitting} className="min-h-11 rounded-[0.85rem] bg-gold px-4 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-wait disabled:opacity-70">
                 {submitting ? 'Joining...' : 'Join the list'}
               </button>
-              <p aria-live="polite" className={`min-h-5 text-sm ${feedback.kind === 'error' ? 'text-maroon' : 'text-emerald-800'}`}>{feedback.message}</p>
+              <p role="status" aria-live="polite" className={`min-h-5 text-sm ${feedback.kind === 'error' ? 'text-maroon' : 'text-emerald-800'}`}>{feedback.message}</p>
             </form>
           </div>
         </div>

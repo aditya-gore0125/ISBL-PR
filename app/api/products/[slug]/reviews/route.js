@@ -3,30 +3,24 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
 import connectToDatabase from '@/lib/mongodb';
+import { applyRateLimit } from '@/lib/rateLimit';
+import { reviewSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 import Product from '@/models/Product';
 
 export async function POST(request, { params }) {
+  const rateLimitResponse = await applyRateLimit(request, { route: 'product-review', limit: 10, windowMs: 60 * 60 * 1000 });
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
     }
 
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ error: 'Request body must be valid JSON.' }, { status: 400 });
-    }
-
-    const rating = body?.rating;
-    const comment = typeof body?.comment === 'string' ? body.comment.trim() : '';
-    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-      return NextResponse.json({ error: 'Rating must be an integer from 1 to 5.' }, { status: 400 });
-    }
-    if (comment.length < 5 || comment.length > 1000) {
-      return NextResponse.json({ error: 'Review must be between 5 and 1000 characters.' }, { status: 400 });
-    }
+    const { data, response } = await validateJsonRequest(request, reviewSchema);
+    if (response) return NextResponse.json({ error: (await response.json()).message }, { status: 400 });
+    const { rating, comment } = data;
 
     await connectToDatabase();
     const userId = new mongoose.Types.ObjectId(session.user.id);

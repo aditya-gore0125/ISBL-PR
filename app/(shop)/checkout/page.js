@@ -272,7 +272,7 @@ export default function CheckoutPage() {
                         className="mt-2 h-12 w-full rounded-[1rem] border border-gold/20 bg-white px-4 text-sm text-charcoal outline-none transition focus:border-gold"
                         type="text"
                       />
-                      {errors[field.name] ? <p className="mt-1 text-xs text-maroon">{errors[field.name]}</p> : null}
+                      {errors[field.name] ? <p role="alert" aria-live="polite" className="mt-1 text-xs text-maroon">{errors[field.name]}</p> : null}
                     </label>
                   ))}
                 </div>
@@ -304,7 +304,7 @@ export default function CheckoutPage() {
               {status === 'failed' ? pendingCapture ? 'Retry order confirmation' : 'Retry payment' : status === 'submitting' ? 'Preparing payment...' : status === 'processing' ? 'Payment in progress...' : 'Pay Now'}
             </button>
 
-            {message ? <div className="rounded-[1rem] border border-gold/15 bg-ivory/80 px-4 py-3 text-sm text-charcoal">{message}</div> : null}
+            {message ? <div role="status" aria-live="polite" className="rounded-[1rem] border border-gold/15 bg-ivory/80 px-4 py-3 text-sm text-charcoal">{message}</div> : null}
           </div>
         </section>
 
@@ -313,7 +313,7 @@ export default function CheckoutPage() {
           <div className="mt-6 space-y-4">
             {items.map((item) => (
               <div key={item.productId} className="flex items-center gap-4 rounded-[1rem] bg-ivory/60 p-3">
-                <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} className="h-16 w-16 rounded-[1rem] object-cover" />
+                <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} sizes="64px" className="h-16 w-16 rounded-[1rem] object-cover" />
                 <div className="flex-1">
                   <p className="font-semibold text-charcoal">{item.name}</p>
                   <p className="text-sm text-charcoal/70">Qty: {item.quantity}</p>

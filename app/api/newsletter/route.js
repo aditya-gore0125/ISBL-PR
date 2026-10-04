@@ -1,21 +1,19 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
+import { applyRateLimit } from '@/lib/rateLimit';
+import { newsletterSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 import Subscriber from '@/models/Subscriber';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ message: 'Request body must be valid JSON.' }, { status: 400 });
-  }
+  const rateLimitResponse = await applyRateLimit(request, { route: 'newsletter', limit: 5, windowMs: 10 * 60 * 1000 });
+  if (rateLimitResponse) return rateLimitResponse;
 
-  const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
-  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ message: 'Enter a valid email address.' }, { status: 400 });
-  }
+  const { data, response } = await validateJsonRequest(request, newsletterSchema);
+  if (response) return response;
+  const { email } = data;
 
   try {
     await connectToDatabase();

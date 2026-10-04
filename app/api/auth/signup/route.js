@@ -1,27 +1,18 @@
 import { hash } from 'bcryptjs';
 import connectToDatabase from '@/lib/mongodb';
+import { applyRateLimit } from '@/lib/rateLimit';
+import { signupSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 import User from '@/models/User';
 
 export async function POST(request) {
+  const rateLimitResponse = await applyRateLimit(request, { route: 'signup', limit: 5, windowMs: 10 * 60 * 1000 });
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
-    const body = await request.json();
-    const name = String(body?.name || '').trim();
-    const email = String(body?.email || '').trim().toLowerCase();
-    const password = String(body?.password || '');
-    const phone = String(body?.phone || '').trim();
-
-    if (!name || !email || !password || name.length > 100 || email.length > 254 || phone.length > 20) {
-      return Response.json({ message: 'Name, email, and password are required.' }, { status: 400 });
-    }
-
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email)) {
-      return Response.json({ message: 'Enter a valid email address.' }, { status: 400 });
-    }
-
-    if (password.length < 6 || password.length > 128) {
-      return Response.json({ message: 'Password must be at least 6 characters long.' }, { status: 400 });
-    }
+    const { data, response } = await validateJsonRequest(request, signupSchema);
+    if (response) return response;
+    const { name, email, password, phone } = data;
 
     await connectToDatabase();
 

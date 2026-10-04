@@ -3,6 +3,8 @@ import connectToDatabase from '@/lib/mongodb';
 import Product from '@/models/Product';
 import { normalizeProductPayload } from '@/lib/adminProduct';
 import { requireAdmin } from '@/lib/requireAdmin';
+import { productUpdateSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 
 function invalidId(error) {
   return error?.name === 'CastError';
@@ -29,7 +31,10 @@ export async function PUT(request, { params }) {
   if (auth.response) return auth.response;
 
   try {
-    const payload = normalizeProductPayload(await request.json(), { partial: true });
+    const { data, response } = await validateJsonRequest(request, productUpdateSchema);
+    if (response) return response;
+    if (!Object.keys(data).length) return NextResponse.json({ message: 'No product changes were provided.' }, { status: 400 });
+    const payload = normalizeProductPayload(data, { partial: true });
     await connectToDatabase();
     const product = await Product.findByIdAndUpdate(params.id, payload, { new: true, runValidators: true }).lean();
     if (!product) return NextResponse.json({ message: 'Product not found.' }, { status: 404 });

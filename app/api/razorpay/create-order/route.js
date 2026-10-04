@@ -2,6 +2,9 @@ import Razorpay from 'razorpay';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import connectToDatabase from '@/lib/mongodb';
+import { applyRateLimit } from '@/lib/rateLimit';
+import { checkoutSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 import { CheckoutCartError, getCheckoutPricing } from '@/lib/checkoutPricing';
 
 /**
@@ -13,6 +16,9 @@ import { CheckoutCartError, getCheckoutPricing } from '@/lib/checkoutPricing';
  */
 
 export async function POST(request) {
+  const rateLimitResponse = await applyRateLimit(request, { route: 'razorpay-create-order', limit: 10, windowMs: 10 * 60 * 1000 });
+  if (rateLimitResponse) return rateLimitResponse;
+
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return Response.json({ message: 'Authentication required.' }, { status: 401 });
@@ -27,11 +33,8 @@ export async function POST(request) {
 
   const razorpayClient = new Razorpay({ key_id: keyId, key_secret: keySecret });
   try {
-    const body = await request.json();
-    if (!body || typeof body !== 'object' || Array.isArray(body)
-      || Object.keys(body).some((key) => key !== 'items')) {
-      return Response.json({ message: 'Invalid checkout payload.' }, { status: 400 });
-    }
+    const { data: body, response } = await validateJsonRequest(request, checkoutSchema);
+    if (response) return response;
 
     await connectToDatabase();
     const pricing = await getCheckoutPricing(body.items);

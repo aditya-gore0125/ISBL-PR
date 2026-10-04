@@ -4,6 +4,8 @@
 
 :root {
   color-scheme: light;
+  --font-manrope: 'Manrope Variable';
+  --font-fraunces: 'Fraunces Variable';
   font-family: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: #FBF6EF;
 }
@@ -34,6 +36,11 @@ textarea {
 
 * {
   box-sizing: border-box;
+}
+
+:focus-visible {
+  outline: 2px solid #C29D5D !important;
+  outline-offset: 2px !important;
 }
 
 @layer utilities {

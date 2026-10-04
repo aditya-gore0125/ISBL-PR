@@ -72,7 +72,7 @@ export default async function AccountOrderPage({ params }) {
           <div className="mt-5 space-y-4">
             {order.items.map((item, index) => (
               <div key={`${item.product}-${index}`} className="flex items-center gap-4 border-b border-gold/10 pb-4 last:border-0 last:pb-0">
-                <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} className="h-16 w-16 rounded-lg object-cover" />
+                <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} sizes="64px" className="h-16 w-16 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-charcoal">{item.name}</p>
                   <p className="mt-1 text-sm text-charcoal/70">Qty: {item.quantity}</p>

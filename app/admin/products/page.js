@@ -86,7 +86,7 @@ export default function AdminProductsPage() {
                     <tr key={product._id} className="border-t border-gold/10 align-middle">
                       <td className="px-4 py-3">
                         {product.images?.[0] ? (
-                          <SafeImage src={product.images?.[0] || '/hero-placeholder.svg'} alt={product.name} width={48} height={48} className="h-12 w-12 rounded-lg object-cover" />
+                          <SafeImage src={product.images?.[0] || '/hero-placeholder.svg'} alt={product.name} width={48} height={48} sizes="48px" className="h-12 w-12 rounded-lg object-cover" />
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-ivory text-[10px] uppercase tracking-[0.2em] text-charcoal/50">No image</div>
                         )}

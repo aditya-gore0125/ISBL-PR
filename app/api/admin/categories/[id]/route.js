@@ -3,6 +3,8 @@ import connectToDatabase from '@/lib/mongodb';
 import Category from '@/models/Category';
 import Product from '@/models/Product';
 import { requireAdmin } from '@/lib/requireAdmin';
+import { categoryUpdateSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 
 function slugify(value) {
   return String(value || '')
@@ -21,20 +23,20 @@ export async function PUT(request, { params }) {
   if (auth.response) return auth.response;
 
   try {
-    const body = await request.json();
+    const { data: body, response } = await validateJsonRequest(request, categoryUpdateSchema);
+    if (response) return response;
+    if (!Object.keys(body).length) return NextResponse.json({ message: 'No category changes were provided.' }, { status: 400 });
     const payload = {};
-    if (typeof body.name === 'string') payload.name = body.name.trim();
+    if (typeof body.name === 'string') payload.name = body.name;
     if (typeof body.slug === 'string' || body.name) payload.slug = slugify(body.slug || body.name);
-    if (typeof body.image === 'string') payload.image = body.image.trim();
-    if (typeof body.type === 'undefined' || ['Ladies', 'Gents'].includes(body.type)) payload.type = body.type;
-    if (typeof body.displayOrder !== 'undefined') payload.displayOrder = Number(body.displayOrder);
+    if (typeof body.image === 'string') payload.image = body.image;
+    if (typeof body.type !== 'undefined') payload.type = body.type;
+    if (typeof body.displayOrder !== 'undefined') payload.displayOrder = body.displayOrder;
 
     if (payload.name === '') return NextResponse.json({ message: 'Name cannot be empty.' }, { status: 400 });
     if (payload.slug === '') return NextResponse.json({ message: 'Slug cannot be empty.' }, { status: 400 });
     if (payload.type === undefined) delete payload.type;
     if ('displayOrder' in payload && !Number.isFinite(payload.displayOrder)) return NextResponse.json({ message: 'Display order must be a number.' }, { status: 400 });
-    if (body.type && !['Ladies', 'Gents'].includes(body.type)) return NextResponse.json({ message: 'Category type is invalid.' }, { status: 400 });
-
     await connectToDatabase();
     const category = await Category.findByIdAndUpdate(params.id, payload, { new: true, runValidators: true }).lean();
     if (!category) return NextResponse.json({ message: 'Category not found.' }, { status: 404 });

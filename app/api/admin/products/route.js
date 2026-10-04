@@ -3,6 +3,8 @@ import connectToDatabase from '@/lib/mongodb';
 import Product from '@/models/Product';
 import { normalizeProductPayload } from '@/lib/adminProduct';
 import { requireAdmin } from '@/lib/requireAdmin';
+import { productCreateSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -23,8 +25,9 @@ export async function POST(request) {
   if (auth.response) return auth.response;
 
   try {
-    const body = await request.json();
-    const payload = normalizeProductPayload(body);
+    const { data, response } = await validateJsonRequest(request, productCreateSchema);
+    if (response) return response;
+    const payload = normalizeProductPayload(data);
     await connectToDatabase();
     const product = await Product.create(payload);
     return NextResponse.json({ product }, { status: 201 });

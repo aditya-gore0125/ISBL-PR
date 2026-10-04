@@ -272,7 +272,7 @@ export default function AccountPage() {
               />
             </label>
 
-            {profileError ? <div className="rounded-[1rem] border border-maroon/20 bg-maroon/5 px-4 py-3 text-sm text-maroon">{profileError}</div> : null}
+            {profileError ? <div role="alert" aria-live="polite" className="rounded-[1rem] border border-maroon/20 bg-maroon/5 px-4 py-3 text-sm text-maroon">{profileError}</div> : null}
 
             <button
               type="submit"
@@ -309,7 +309,7 @@ export default function AccountPage() {
                     onChange={(event) => handleAddressFieldChange(field.field, event.target.value)}
                     className="mt-2 h-11 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none transition focus:border-gold"
                   />
-                  {addressErrors[field.field] ? <p className="mt-1 text-xs text-maroon">{addressErrors[field.field]}</p> : null}
+                  {addressErrors[field.field] ? <p role="alert" aria-live="polite" className="mt-1 text-xs text-maroon">{addressErrors[field.field]}</p> : null}
                 </label>
               ))}
             </div>
@@ -399,7 +399,7 @@ export default function AccountPage() {
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {order.items.map((item) => (
                     <div key={`${order._id}-${item.product}-${item.name}`} className="flex items-center gap-3 rounded-[1rem] bg-white/80 p-3">
-                      <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} className="h-14 w-14 rounded-[0.8rem] object-cover" />
+                      <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} sizes="56px" className="h-14 w-14 rounded-[0.8rem] object-cover" />
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-charcoal">{item.name}</p>
                         <p className="text-xs text-charcoal/70">Qty: {item.quantity}</p>

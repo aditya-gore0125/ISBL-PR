@@ -3,6 +3,9 @@ import Razorpay from 'razorpay';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import connectToDatabase from '@/lib/mongodb';
+import { applyRateLimit } from '@/lib/rateLimit';
+import { createOrderSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 import { CheckoutCartError, getCheckoutPricing } from '@/lib/checkoutPricing';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
@@ -28,6 +31,9 @@ function normalizeAddress(address) {
 }
 
 export async function POST(request) {
+  const rateLimitResponse = await applyRateLimit(request, { route: 'orders-create', limit: 10, windowMs: 10 * 60 * 1000 });
+  if (rateLimitResponse) return rateLimitResponse;
+
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return Response.json({ message: 'Authentication required.' }, { status: 401 });
@@ -40,19 +46,11 @@ export async function POST(request) {
   }
 
   try {
-    const body = await request.json();
-    const allowedFields = ['razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature', 'shippingAddress', 'items'];
-    if (!body || typeof body !== 'object' || Array.isArray(body)
-      || Object.keys(body).some((key) => !allowedFields.includes(key))) {
-      return Response.json({ message: 'Invalid order payload.' }, { status: 400 });
-    }
-
+    const { data: body, response } = await validateJsonRequest(request, createOrderSchema);
+    if (response) return response;
     const { razorpay_order_id: orderId, razorpay_payment_id: paymentId, razorpay_signature: signature } = body;
     const shippingAddress = normalizeAddress(body.shippingAddress);
-    if (typeof orderId !== 'string' || orderId.length > 100 || typeof paymentId !== 'string'
-      || paymentId.length > 200 || !shippingAddress) {
-      return Response.json({ message: 'Missing or invalid order details.' }, { status: 400 });
-    }
+    if (!shippingAddress) return Response.json({ message: 'Missing or invalid shipping address.' }, { status: 400 });
     if (!hasValidSignature(orderId, paymentId, signature, keySecret)) {
       return Response.json({ message: 'Payment signature is invalid.' }, { status: 400 });
     }

@@ -73,7 +73,25 @@ export default function AdminProductForm({ productId }) {
     setSaving(true);
     setStatus('');
     try {
-      const payload = { ...form, price: Number(form.price), discountPrice: Number(form.discountPrice || 0), stock: Number(form.stock || 0), rating: Number(form.rating || 0), numReviews: Number(form.numReviews || 0) };
+      const payload = {
+        name: form.name,
+        slug: form.slug,
+        type: form.type,
+        category: form.category,
+        description: form.description,
+        material: form.material,
+        price: Number(form.price),
+        discountPrice: Number(form.discountPrice || 0),
+        images: form.images,
+        stock: Number(form.stock || 0),
+        isFeatured: form.isFeatured,
+        isNewArrival: form.isNewArrival,
+        rating: Number(form.rating || 0),
+        numReviews: Number(form.numReviews || 0),
+        reviews: form.reviews,
+        metaTitle: form.metaTitle,
+        metaDescription: form.metaDescription,
+      };
       const response = await fetch(productId ? `/api/admin/products/${productId}` : '/api/admin/products', { method: productId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Unable to save product.');
@@ -109,7 +127,7 @@ export default function AdminProductForm({ productId }) {
       </div>
       <label className={labelClass}>Reviews JSON<textarea name="reviews" value={JSON.stringify(form.reviews, null, 2)} onChange={(event) => { try { setForm((current) => ({ ...current, reviews: JSON.parse(event.target.value) })); } catch {} }} rows="5" className={`${inputClass} font-mono text-xs`} /></label>
       <div className="flex flex-wrap gap-5 text-sm font-semibold text-charcoal"><label className="flex items-center gap-2"><input type="checkbox" name="isFeatured" checked={form.isFeatured} onChange={update} className="h-4 w-4 rounded border-gold/20 text-gold focus:ring-gold" />Featured</label><label className="flex items-center gap-2"><input type="checkbox" name="isNewArrival" checked={form.isNewArrival} onChange={update} className="h-4 w-4 rounded border-gold/20 text-gold focus:ring-gold" />New arrival</label></div>
-      {status ? <p className="text-sm text-maroon">{status}</p> : null}
+      {status ? <p role="alert" aria-live="polite" className="text-sm text-maroon">{status}</p> : null}
       <div className="flex justify-end"><button type="submit" disabled={saving || uploading} className="rounded-[0.95rem] bg-gold px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white hover:bg-gold-dark disabled:cursor-not-allowed disabled:opacity-60">{saving ? 'Saving...' : 'Save product'}</button></div>
     </form>
   );
