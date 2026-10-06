@@ -1,4 +1,11 @@
 import Razorpay from 'razorpay';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import connectToDatabase from '@/lib/mongodb';
+import { applyRateLimit } from '@/lib/rateLimit';
+import { checkoutSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
+import { CheckoutCartError, getCheckoutPricing } from '@/lib/checkoutPricing';
 
 /**
  * Production setup:
@@ -9,6 +16,14 @@ import Razorpay from 'razorpay';
  */
 
 export async function POST(request) {
+  const rateLimitResponse = await applyRateLimit(request, { route: 'razorpay-create-order', limit: 10, windowMs: 10 * 60 * 1000 });
+  if (rateLimitResponse) return rateLimitResponse;
+
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return Response.json({ message: 'Authentication required.' }, { status: 401 });
+  }
+
   const keyId = process.env.RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
@@ -18,29 +33,31 @@ export async function POST(request) {
 
   const razorpayClient = new Razorpay({ key_id: keyId, key_secret: keySecret });
   try {
-    const body = await request.json();
-    const amount = Number(body.amount);
-    const receipt = body.receipt || `receipt_${Date.now()}`;
+    const { data: body, response } = await validateJsonRequest(request, checkoutSchema);
+    if (response) return response;
 
-    if (!amount || amount <= 0) {
-      return new Response(JSON.stringify({ message: 'Invalid payment amount.' }), { status: 400 });
-    }
-
+    await connectToDatabase();
+    const pricing = await getCheckoutPricing(body.items);
     const order = await razorpayClient.orders.create({
-      amount,
+      amount: pricing.totalPaise,
       currency: 'INR',
-      receipt,
+      receipt: `checkout_${Date.now()}`,
       payment_capture: 1,
+      notes: { userId: session.user.id },
     });
 
-    return new Response(JSON.stringify({
+    return Response.json({
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
       key: keyId,
-    }));
+      serverTotal: pricing.total,
+    });
   } catch (error) {
+    if (error instanceof CheckoutCartError) {
+      return Response.json({ message: error.message }, { status: error.status });
+    }
     console.error('Razorpay create-order error', error);
-    return new Response(JSON.stringify({ message: 'Unable to create Razorpay order.' }), { status: 500 });
+    return Response.json({ message: 'Unable to create Razorpay order.' }, { status: 500 });
   }
 }
