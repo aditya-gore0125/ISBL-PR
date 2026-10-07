@@ -78,58 +78,92 @@ export async function POST(request) {
       return Response.json({ message: 'Payment order does not match this checkout.' }, { status: 400 });
     }
 
+    const decrementedItems = [];
+    const rollbackStock = async () => {
+      let restored = true;
+      for (const item of [...decrementedItems].reverse()) {
+        const filter = item.size
+          ? { _id: item.product, sizes: { $elemMatch: { size: item.size } } }
+          : { _id: item.product };
+        const update = item.size
+          ? { $inc: { 'sizes.$.stock': item.quantity, stock: item.quantity } }
+          : { $inc: { stock: item.quantity } };
+        try {
+          const result = await Product.updateOne(filter, update);
+          if (result.modifiedCount === 1) continue;
+          console.error('Order stock rollback could not restore product stock', {
+            product: item.product.toString(),
+            size: item.size,
+          });
+          restored = false;
+        } catch (error) {
+          console.error('Order stock rollback failed', error);
+          restored = false;
+        }
+      }
+      return restored;
+    };
+
+    for (const item of pricing.items) {
+      const filter = item.size
+        ? {
+            _id: item.product,
+            'sizes.size': item.size,
+            'sizes.stock': { $gte: item.quantity },
+            sizes: { $elemMatch: { size: item.size, stock: { $gte: item.quantity } } },
+          }
+        : { _id: item.product, stock: { $gte: item.quantity } };
+      const update = item.size
+        ? { $inc: { 'sizes.$.stock': -item.quantity, stock: -item.quantity } }
+        : { $inc: { stock: -item.quantity } };
+      let result;
+      try {
+        result = await Product.updateOne(filter, update);
+      } catch (error) {
+        await rollbackStock();
+        throw error;
+      }
+      if (result.modifiedCount !== 1) {
+        const restored = await rollbackStock();
+        const label = item.size ? ` size ${item.size}` : '';
+        if (!restored) {
+          return Response.json({ message: 'Stock changed during checkout and could not be fully restored. Please contact support.' }, { status: 500 });
+        }
+        return Response.json({ message: `${item.name}${label} no longer has enough stock. Please update your cart.` }, { status: 400 });
+      }
+      decrementedItems.push(item);
+    }
+
     let order;
     try {
       order = await Order.create({
         user: session.user.id,
         razorpayOrderId: orderId,
-        items: pricing.items.map(({ product, name, image, price, quantity }) => ({
+        items: pricing.items.map(({ product, name, image, price, quantity, size }) => ({
           product,
           name,
           image,
           price,
           quantity,
+          ...(size ? { size } : {}),
         })),
         shippingAddress,
         paymentId,
         paymentStatus: 'paid',
-        orderStatus: 'pending',
-        needsReview: true,
+        orderStatus: 'confirmed',
+        needsReview: false,
         totalAmount: pricing.total,
       });
     } catch (error) {
       if (error.code === 11000) {
         const duplicate = await Order.findOne({ razorpayOrderId: orderId });
         if (duplicate?.user.toString() === session.user.id) {
+          await rollbackStock();
           return Response.json({ order: duplicate }, { status: 200 });
         }
       }
+      await rollbackStock();
       throw error;
-    }
-
-    let stockUpdated = true;
-    try {
-      for (const item of pricing.items) {
-        const result = await Product.updateOne(
-          { _id: item.product, stock: { $gte: item.quantity } },
-          { $inc: { stock: -item.quantity } }
-        );
-        if (result.modifiedCount !== 1) {
-          stockUpdated = false;
-          break;
-        }
-      }
-    } catch (error) {
-      console.error('Order stock decrement error', error);
-      stockUpdated = false;
-    }
-
-    if (stockUpdated) {
-      order = await Order.findByIdAndUpdate(
-        order._id,
-        { $set: { orderStatus: 'confirmed', needsReview: false } },
-        { new: true }
-      );
     }
 
     return Response.json({ order }, { status: 201 });
