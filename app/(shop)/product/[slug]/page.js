@@ -8,6 +8,7 @@ import ProductPurchasePanel from '@/components/ProductPurchasePanel';
 import ReviewForm from '@/components/ReviewForm';
 import { authOptions } from '@/lib/auth';
 import connectToDatabase from '@/lib/mongodb';
+import { getSizeOptions } from '@/lib/sizeConfig';
 import Product from '@/models/Product';
 
 function formatDate(value) {
@@ -35,7 +36,10 @@ function buildJsonLd(product) {
   const basePrice = Number(product?.price || 0);
   const discountPrice = Number(product?.discountPrice || 0);
   const price = discountPrice > 0 && discountPrice < basePrice ? discountPrice : basePrice;
-  const availability = Number(product?.stock || 0) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+  const totalStock = getSizeOptions(product?.type, product?.category)
+    ? (product?.sizes || []).reduce((total, size) => total + Number(size.stock || 0), 0)
+    : Number(product?.stock || 0);
+  const availability = totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
   const ratingValue = Number(product?.rating || 0);
   const reviewCount = Number(product?.numReviews || 0);
   const siteUrl = String(process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/+$/, '');
@@ -113,8 +117,11 @@ export default async function ProductDetailPage({ params }) {
       .lean(),
   ]);
 
-  const stockLabel = Number(product.stock || 0) > 0 ? 'In Stock' : 'Out of Stock';
-  const stockClass = Number(product.stock || 0) > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-maroon/10 text-maroon';
+  const totalStock = getSizeOptions(product.type, product.category)
+    ? (product.sizes || []).reduce((total, size) => total + Number(size.stock || 0), 0)
+    : Number(product.stock || 0);
+  const stockLabel = totalStock > 0 ? 'In Stock' : 'Out of Stock';
+  const stockClass = totalStock > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-maroon/10 text-maroon';
   const ratingValue = Number(product.rating || 0);
   const reviewCount = Number(product.numReviews || 0);
   const jsonLd = JSON.stringify(buildJsonLd(product)).replace(/</g, '\\u003c');
@@ -154,7 +161,10 @@ export default async function ProductDetailPage({ params }) {
                 price={Number(product.price || 0)}
                 discountPrice={Number(product.discountPrice || 0)}
                 image={String(product.images?.[0] || '/hero-placeholder.svg')}
-                stock={Number(product.stock || 0)}
+                stock={totalStock}
+                sizes={Array.isArray(product.sizes) ? product.sizes : []}
+                type={String(product.type || '')}
+                category={String(product.category || '')}
               />
 
               <div className="mt-8 rounded-[1.2rem] border border-gold/15 bg-white/70 p-5 shadow-soft">

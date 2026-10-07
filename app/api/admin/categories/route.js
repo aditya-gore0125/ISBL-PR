@@ -4,14 +4,7 @@ import Category from '@/models/Category';
 import { categoryCreateSchema } from '@/lib/schemas';
 import { validateJsonRequest } from '@/lib/validateRequest';
 import { requireAdmin } from '@/lib/requireAdmin';
-
-function slugify(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
+import { slugify } from '@/lib/slugify';
 
 export async function GET() {
   const auth = await requireAdmin();

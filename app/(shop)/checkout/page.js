@@ -159,7 +159,7 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+          items: items.map((item) => ({ productId: item.productId, size: item.size ?? null, quantity: item.quantity })),
         }),
       });
       const result = await response.json();
@@ -185,7 +185,7 @@ export default function CheckoutPage() {
           paymentId: paymentResponse.razorpay_payment_id,
           signature: paymentResponse.razorpay_signature,
           shippingAddress: { ...address },
-          items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+          items: items.map((item) => ({ productId: item.productId, size: item.size ?? null, quantity: item.quantity })),
         }),
         modal: {
           ondismiss: () => {
@@ -312,10 +312,11 @@ export default function CheckoutPage() {
           <h2 className="font-fraunces text-2xl text-charcoal">Order summary</h2>
           <div className="mt-6 space-y-4">
             {items.map((item) => (
-              <div key={item.productId} className="flex items-center gap-4 rounded-[1rem] bg-ivory/60 p-3">
+              <div key={`${item.productId}-${item.size ?? ''}`} className="flex items-center gap-4 rounded-[1rem] bg-ivory/60 p-3">
                 <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} sizes="64px" className="h-16 w-16 rounded-[1rem] object-cover" />
                 <div className="flex-1">
                   <p className="font-semibold text-charcoal">{item.name}</p>
+                  {item.size ? <p className="text-sm text-charcoal/70">Size: {item.size}</p> : null}
                   <p className="text-sm text-charcoal/70">Qty: {item.quantity}</p>
                 </div>
               </div>

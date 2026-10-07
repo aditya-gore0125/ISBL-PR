@@ -75,6 +75,7 @@ export default async function AccountOrderPage({ params }) {
                 <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} sizes="64px" className="h-16 w-16 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-charcoal">{item.name}</p>
+                  {item.size ? <p className="mt-1 text-sm text-charcoal/70">Size: {item.size}</p> : null}
                   <p className="mt-1 text-sm text-charcoal/70">Qty: {item.quantity}</p>
                 </div>
                 <p className="text-sm font-semibold text-charcoal">{formatPrice(item.price * item.quantity)}</p>

@@ -15,7 +15,6 @@ async function seed() {
 
   try {
     await connectToDatabase();
-    await Category.deleteMany({});
     await Category.bulkWrite(
       categoriesToSeed.map((category) => ({
         updateOne: {

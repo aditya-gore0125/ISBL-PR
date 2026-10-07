@@ -99,18 +99,16 @@ export async function PUT(request, { params }) {
         }).populate('user', 'name email phone').lean();
         if (!updatedOrder || !shouldRestoreStock) return;
 
-        const stockUpdates = updatedOrder.items
-          .filter((item) => item.product && Number(item.quantity) > 0)
-          .map((item) => ({
-            updateOne: {
-              filter: { _id: item.product },
-              update: { $inc: { stock: Number(item.quantity) } },
-            },
-          }));
-        if (stockUpdates.length) {
-          const result = await Product.bulkWrite(stockUpdates, { session });
-          if (result.matchedCount !== stockUpdates.length) {
-            const error = new Error('One or more order products no longer exist; stock was not restored.');
+        for (const item of updatedOrder.items.filter((entry) => entry.product && Number(entry.quantity) > 0)) {
+          const filter = item.size
+            ? { _id: item.product, 'sizes.size': item.size }
+            : { _id: item.product };
+          const update = item.size
+            ? { $inc: { 'sizes.$.stock': Number(item.quantity), stock: Number(item.quantity) } }
+            : { $inc: { stock: Number(item.quantity) } };
+          const result = await Product.updateOne(filter, update, { session });
+          if (result.modifiedCount !== 1) {
+            const error = new Error(`Stock for ${item.name}${item.size ? ` size ${item.size}` : ''} could not be restored.`);
             error.code = 'ORDER_PRODUCT_MISSING';
             throw error;
           }

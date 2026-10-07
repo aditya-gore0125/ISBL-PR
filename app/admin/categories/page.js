@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import SafeImage from '@/components/SafeImage';
+import { slugify } from '@/lib/slugify';
 
 const categoryTypes = ['Ladies', 'Gents'];
 
@@ -47,7 +48,7 @@ export default function AdminCategoriesPage() {
       const payload = {
         ...form,
         name: form.name.trim(),
-        slug: form.slug || form.name.trim(),
+        slug: slugify(form.slug || form.name),
         image: form.image.trim(),
         type: form.type,
         displayOrder: Number(form.displayOrder || 0),

@@ -150,11 +150,12 @@ export default function AdminOrderDetailPage({ params }) {
             <h4 className="mb-3 font-fraunces text-xl text-charcoal">Items</h4>
             <div className="space-y-3">
               {order.items?.map((item) => (
-                <div key={`${item.product}-${item.name}`} className="flex items-center justify-between rounded-[1rem] border border-gold/10 bg-ivory p-3">
+                <div key={`${item.product}-${item.size ?? ''}-${item.name}`} className="flex items-center justify-between rounded-[1rem] border border-gold/10 bg-ivory p-3">
                   <div className="flex items-center gap-3">
                     <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} sizes="56px" className="h-14 w-14 rounded-lg object-cover" />
                     <div>
                       <p className="text-sm font-semibold text-charcoal">{item.name}</p>
+                      {item.size ? <p className="text-xs text-charcoal/60">Size: {item.size}</p> : null}
                       <p className="text-xs text-charcoal/60">Qty: {item.quantity}</p>
                     </div>
                   </div>

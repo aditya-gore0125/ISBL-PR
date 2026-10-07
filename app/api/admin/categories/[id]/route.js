@@ -5,14 +5,7 @@ import Product from '@/models/Product';
 import { requireAdmin } from '@/lib/requireAdmin';
 import { categoryUpdateSchema } from '@/lib/schemas';
 import { validateJsonRequest } from '@/lib/validateRequest';
-
-function slugify(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
+import { slugify } from '@/lib/slugify';
 
 function invalidId(error) {
   return error?.name === 'CastError';
