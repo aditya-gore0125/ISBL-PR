@@ -1,3 +1,6 @@
+import dbConnect from '@/lib/mongodb';
+import ContactInquiry from '@/models/ContactInquiry';
+
 export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
@@ -17,15 +20,17 @@ export async function POST(request) {
       return Response.json({ message: 'Message is required.' }, { status: 400 });
     }
 
-    // In production, send email notification or save inquiry to MongoDB.
-    console.log('New Contact Inquiry received:', {
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone ? phone.trim() : '',
+    // Save to MongoDB
+    await dbConnect();
+    await ContactInquiry.create({
+      name:    name.trim(),
+      email:   email.trim(),
+      phone:   phone ? phone.trim() : '',
       subject: subject || 'General Inquiry',
       message: message.trim(),
-      date: new Date().toISOString(),
     });
+
+    console.log('Contact inquiry saved to DB from:', email.trim());
 
     return Response.json({
       success: true,
@@ -36,4 +41,3 @@ export async function POST(request) {
     return Response.json({ message: 'Failed to process your request. Please try again later.' }, { status: 500 });
   }
 }
-
