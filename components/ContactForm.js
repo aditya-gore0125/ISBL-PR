@@ -53,20 +53,20 @@ export default function ContactForm() {
 
   if (submitted) {
     return (
-      <div className="rounded-[1.25rem] border border-emerald-200 bg-emerald-50/80 p-6 text-center">
-        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50/90 p-8 text-center sm:p-12">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-sm">
+          <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 className="mt-3 font-fraunces text-xl text-emerald-900">Message Received!</h3>
-        <p className="mt-2 text-sm leading-relaxed text-emerald-800">
-          Thank you for reaching out. Our jewelry concierge will get back to you within 24 hours.
+        <h3 className="mt-4 font-fraunces text-2xl text-emerald-950 sm:text-3xl">Message Received</h3>
+        <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-emerald-800">
+          Thank you for reaching out. Our jewelry concierge has received your request and will contact you within 24 hours.
         </p>
         <button
           type="button"
           onClick={() => setSubmitted(false)}
-          className="mt-4 rounded-full bg-emerald-700 px-5 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800"
+          className="mt-6 rounded-full bg-emerald-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800"
         >
           Send Another Message
         </button>
@@ -75,90 +75,91 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-[1.25rem] border border-gold/15 bg-white p-6 shadow-soft">
+    <form onSubmit={handleSubmit} className="space-y-6 rounded-[1.75rem] border border-gold/15 bg-white p-6 shadow-soft sm:p-10">
       {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label className="block text-xs font-semibold text-charcoal">Your Name *</label>
+          <label className="block text-sm font-medium text-charcoal">Your Full Name *</label>
           <input
             type="text"
             name="name"
             required
             value={form.name}
             onChange={handleChange}
-            placeholder="Full Name"
-            className="mt-1.5 w-full rounded-lg border border-gold/20 bg-ivory/50 px-3.5 py-2 text-sm text-charcoal outline-none focus:border-gold focus:bg-white"
+            placeholder="e.g. Priya Sharma"
+            className="mt-2 w-full rounded-xl border border-gold/20 bg-ivory/40 px-4 py-3 text-sm text-charcoal outline-none transition focus:border-gold focus:bg-white focus:ring-1 focus:ring-gold"
           />
         </div>
+
         <div>
-          <label className="block text-xs font-semibold text-charcoal">Email Address *</label>
+          <label className="block text-sm font-medium text-charcoal">Email Address *</label>
           <input
             type="email"
             name="email"
             required
             value={form.email}
             onChange={handleChange}
-            placeholder="name@example.com"
-            className="mt-1.5 w-full rounded-lg border border-gold/20 bg-ivory/50 px-3.5 py-2 text-sm text-charcoal outline-none focus:border-gold focus:bg-white"
+            placeholder="priya@example.com"
+            className="mt-2 w-full rounded-xl border border-gold/20 bg-ivory/40 px-4 py-3 text-sm text-charcoal outline-none transition focus:border-gold focus:bg-white focus:ring-1 focus:ring-gold"
           />
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label className="block text-xs font-semibold text-charcoal">Phone Number</label>
+          <label className="block text-sm font-medium text-charcoal">Phone / WhatsApp Number</label>
           <input
             type="tel"
             name="phone"
             value={form.phone}
             onChange={handleChange}
-            placeholder="+91 98765 43210"
-            className="mt-1.5 w-full rounded-lg border border-gold/20 bg-ivory/50 px-3.5 py-2 text-sm text-charcoal outline-none focus:border-gold focus:bg-white"
+            placeholder="+91 93220 06509"
+            className="mt-2 w-full rounded-xl border border-gold/20 bg-ivory/40 px-4 py-3 text-sm text-charcoal outline-none transition focus:border-gold focus:bg-white focus:ring-1 focus:ring-gold"
           />
         </div>
+
         <div>
-          <label className="block text-xs font-semibold text-charcoal">Inquiry Type</label>
+          <label className="block text-sm font-medium text-charcoal">Topic of Inquiry</label>
           <select
             name="subject"
             value={form.subject}
             onChange={handleChange}
-            className="mt-1.5 w-full rounded-lg border border-gold/20 bg-ivory/50 px-3.5 py-2 text-sm text-charcoal outline-none focus:border-gold focus:bg-white"
+            className="mt-2 w-full rounded-xl border border-gold/20 bg-ivory/40 px-4 py-3 text-sm text-charcoal outline-none transition focus:border-gold focus:bg-white focus:ring-1 focus:ring-gold"
           >
             <option value="General Inquiry">General Inquiry</option>
             <option value="Bridal Consultation">Bridal Consultation</option>
             <option value="Order & Delivery Status">Order & Delivery Status</option>
             <option value="Custom Sizing & Design">Custom Sizing & Design</option>
-            <option value="Bulk & Gifting">Bulk & Gifting</option>
+            <option value="Bulk & Festive Gifting">Bulk & Festive Gifting</option>
           </select>
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-charcoal">Message *</label>
+        <label className="block text-sm font-medium text-charcoal">Your Message *</label>
         <textarea
           name="message"
-          rows={4}
+          rows={5}
           required
           value={form.message}
           onChange={handleChange}
-          placeholder="How can we assist you today?"
-          className="mt-1.5 w-full rounded-lg border border-gold/20 bg-ivory/50 px-3.5 py-2 text-sm text-charcoal outline-none focus:border-gold focus:bg-white"
+          placeholder="Please tell us about your requirements, specific jewelry pieces, or questions..."
+          className="mt-2 w-full rounded-xl border border-gold/20 bg-ivory/40 px-4 py-3 text-sm text-charcoal outline-none transition focus:border-gold focus:bg-white focus:ring-1 focus:ring-gold"
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-gold py-2.5 text-xs font-semibold uppercase tracking-wider text-white shadow-soft transition hover:bg-gold-dark disabled:opacity-50"
+        className="w-full rounded-xl bg-gold py-3.5 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-soft transition hover:bg-gold-dark disabled:opacity-50"
       >
-        {loading ? 'Sending...' : 'Send Message'}
+        {loading ? 'Sending Message...' : 'Send Message'}
       </button>
     </form>
   );
 }
-
