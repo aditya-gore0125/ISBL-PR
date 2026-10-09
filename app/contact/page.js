@@ -219,7 +219,7 @@ export default function ContactPage() {
 
                   <div className="flex items-center gap-3">
                     <span className="text-gold font-bold">📞</span>
-                    <p>+91 (020) 2613-8890 / +91 98220 12345</p>
+                    <p>+91 93220 06509</p>
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -242,7 +242,7 @@ export default function ContactPage() {
                   Need an instant video call preview of a necklace or real-time photos of a ring? Message our master stylist directly on WhatsApp.
                 </p>
                 <a
-                  href="https://wa.me/919822012345?text=Hello%20Nandini%20Jewellers,%20I%20would%20like%20to%20inquire%20about%20your%20collection."
+                  href="https://wa.me/919322006509?text=Hello%20Nandini%20Jewellers,%20I%20would%20like%20to%20inquire%20about%20your%20collection."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-5 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 shadow-sm"
