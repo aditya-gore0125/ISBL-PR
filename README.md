@@ -27,12 +27,13 @@ CLOUDINARY_CLOUD_NAME=<cloud-name>
 CLOUDINARY_API_KEY=<api-key>
 CLOUDINARY_API_SECRET=<api-secret>
 
-# Optional: configure both values to share rate limits across server instances.
+# Recommended in production: create a free Redis database at https://console.upstash.com,
+# open its database details, and copy the REST URL and REST token shown there.
 UPSTASH_REDIS_REST_URL=<upstash-redis-rest-url>
 UPSTASH_REDIS_REST_TOKEN=<upstash-redis-rest-token>
 ```
 
-`NEXTAUTH_SECRET` should be a cryptographically random secret, for example one generated with `openssl rand -base64 32`. Do not commit `.env.local` or expose server-only values through client code. If Upstash is not configured, rate limiting uses an in-memory sliding window local to the current server process; this fallback is not shared across serverless instances.
+`NEXTAUTH_SECRET` should be a cryptographically random secret, for example one generated with `openssl rand -base64 32`. Do not commit `.env.local` or expose server-only values through client code. Create an Upstash account, create a Redis database on the free tier, then copy that database's **REST URL** and **REST token** into `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. Configure both values in Vercel for production so rate limits are shared across serverless instances. If both values are omitted in production, the server logs a warning and falls back to an in-memory sliding window local to each server process; that fallback is not shared across instances. If only one value is configured, the server logs a warning and rate-limited endpoints fail closed with HTTP 503 until both values are set.
 
 `NODE_ENV` is also read by the application, but Next.js sets it automatically; do not add it to `.env.local`.
 
