@@ -23,6 +23,7 @@ function formatDate(value) {
 
 export default function AdminOrderDetailPage({ params }) {
   const router = useRouter();
+  const [orderId, setOrderId] = useState(null);
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,9 +31,17 @@ export default function AdminOrderDetailPage({ params }) {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
+    Promise.resolve(params).then((resolved) => {
+      if (resolved?.id) setOrderId(resolved.id);
+    });
+  }, [params]);
+
+  useEffect(() => {
+    if (!orderId) return;
+
     const fetchOrder = async () => {
       try {
-        const response = await fetch(`/api/admin/orders/${params.id}`);
+        const response = await fetch(`/api/admin/orders/${orderId}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -48,7 +57,7 @@ export default function AdminOrderDetailPage({ params }) {
     };
 
     fetchOrder();
-  }, [params.id]);
+  }, [orderId]);
 
   const handleSave = async (event) => {
     event.preventDefault();
@@ -57,7 +66,8 @@ export default function AdminOrderDetailPage({ params }) {
     setSuccess('');
 
     try {
-      const response = await fetch(`/api/admin/orders/${params.id}`, {
+      const targetId = orderId || (params?.id);
+      const response = await fetch(`/api/admin/orders/${targetId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

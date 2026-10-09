@@ -70,7 +70,8 @@ function buildJsonLd(product) {
 }
 
 export async function generateMetadata({ params }) {
-  const slug = params?.slug;
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams?.slug;
   await connectToDatabase();
   const product = await Product.findOne({ slug }).lean();
 
@@ -96,7 +97,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function ProductDetailPage({ params }) {
-  const slug = params?.slug;
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams?.slug;
 
   await connectToDatabase();
   const product = await Product.findOne({ slug }).lean();

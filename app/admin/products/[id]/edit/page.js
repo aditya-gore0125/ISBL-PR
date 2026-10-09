@@ -1,5 +1,6 @@
 import AdminProductForm from '@/components/AdminProductForm';
 
-export default function EditProductPage({ params }) {
-  return <AdminProductForm productId={params.id} />;
+export default async function EditProductPage({ params }) {
+  const resolvedParams = await Promise.resolve(params);
+  return <AdminProductForm productId={resolvedParams?.id} />;
 }
