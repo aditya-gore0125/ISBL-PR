@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function ContactForm() {
   const [form, setForm] = useState({
@@ -13,6 +13,7 @@ export default function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const submittingRef = useRef(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,6 +22,8 @@ export default function ContactForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setLoading(true);
     setError('');
 
@@ -31,9 +34,17 @@ export default function ContactForm() {
         body: JSON.stringify(form),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Unable to submit inquiry. Please try again.');
+      }
       if (!response.ok) {
         throw new Error(data?.message || 'Failed to submit inquiry.');
+      }
+      if (data?.success !== true) {
+        throw new Error('Unable to submit inquiry. Please try again.');
       }
 
       setSubmitted(true);
@@ -47,6 +58,7 @@ export default function ContactForm() {
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };
