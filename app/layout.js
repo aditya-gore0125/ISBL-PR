@@ -20,11 +20,15 @@ export const metadata = {
   description: 'Elegant fashion jewelry store with warm, premium design and seamless shopping experience.',
 };
 
+import Providers from '@/components/Providers';
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${manrope.variable}`}>
       <body className="min-h-screen bg-ivory text-charcoal antialiased">
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

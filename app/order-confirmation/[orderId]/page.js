@@ -7,8 +7,9 @@ function formatPrice(value) {
 }
 
 export default async function OrderConfirmationPage({ params }) {
+  const resolvedParams = await Promise.resolve(params);
   await connectToDatabase();
-  const order = await Order.findById(params.orderId).lean();
+  const order = await Order.findById(resolvedParams?.orderId).lean();
 
   if (!order) {
     return (

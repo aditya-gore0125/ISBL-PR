@@ -47,9 +47,13 @@ function groupCategories(categories = []) {
 export default async function HomePage() {
   await connectToDatabase();
 
-  const categories = await Category.find({}).sort({ displayOrder: 1, name: 1 }).lean();
-  const featuredProducts = await Product.find({ isFeatured: true }).sort({ createdAt: -1 }).limit(4).lean();
-  const newArrivals = await Product.find({ isNewArrival: true }).sort({ createdAt: -1 }).limit(4).lean();
+  const rawCategories = await Category.find({}).sort({ displayOrder: 1, name: 1 }).lean();
+  const rawFeaturedProducts = await Product.find({ isFeatured: true }).sort({ createdAt: -1 }).limit(4).lean();
+  const rawNewArrivals = await Product.find({ isNewArrival: true }).sort({ createdAt: -1 }).limit(4).lean();
+
+  const categories = JSON.parse(JSON.stringify(rawCategories));
+  const featuredProducts = JSON.parse(JSON.stringify(rawFeaturedProducts));
+  const newArrivals = JSON.parse(JSON.stringify(rawNewArrivals));
 
   const groupedCategories = groupCategories(categories);
 
@@ -155,6 +159,135 @@ export default async function HomePage() {
             {newArrivals.map((product) => (
               <ProductCard key={product._id} product={{ ...product, category: product.category || 'New' }} />
             ))}
+          </div>
+        </section>
+
+        {/* About Section */}
+        <section id="about" className="scroll-mt-20 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <SectionDivider />
+          <div className="overflow-hidden rounded-[1.6rem] border border-gold/15 bg-gradient-to-br from-white via-ivory to-blush/25 p-8 shadow-soft sm:p-12">
+            <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.35em] text-gold">The Story of Nandini</p>
+                <h2 className="mt-3 font-fraunces text-3xl leading-tight text-charcoal sm:text-4xl">
+                  Artisanal heritage, sculpted for modern celebrations.
+                </h2>
+                <p className="mt-4 text-base leading-8 text-charcoal/80">
+                  Founded with a vision to preserve indigenous Indian goldsmithing techniques while tailoring silhouetted pieces for today’s woman. From luminous bridal choker sets to minimalist daily chains, every piece carries enduring grace.
+                </p>
+
+                <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-[1rem] border border-gold/15 bg-white/80 p-4">
+                    <p className="font-fraunces text-2xl text-gold">100%</p>
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-charcoal/70">Certified Quality</p>
+                  </div>
+                  <div className="rounded-[1rem] border border-gold/15 bg-white/80 p-4">
+                    <p className="font-fraunces text-2xl text-gold">25+ Yrs</p>
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-charcoal/70">Goldsmithing Legacy</p>
+                  </div>
+                  <div className="rounded-[1rem] border border-gold/15 bg-white/80 p-4">
+                    <p className="font-fraunces text-2xl text-gold">50,000+</p>
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-charcoal/70">Cherished Clients</p>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <Link
+                    href="/about"
+                    className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-soft transition hover:bg-gold-dark"
+                  >
+                    <span>Read Our Heritage</span>
+                    <span>→</span>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="rounded-[1.4rem] border border-gold/20 bg-ivory/80 p-6 text-center">
+                <div className="rounded-[1.2rem] border border-dashed border-gold/30 p-8 bg-white/60">
+                  <span className="font-fraunces text-3xl text-gold">Nandini</span>
+                  <p className="mt-2 text-xs uppercase tracking-[0.35em] text-charcoal/60">Signature Promise</p>
+                  <p className="mt-5 font-fraunces italic text-base leading-relaxed text-charcoal/85">
+                    “True jewelry transcends trends. It becomes part of your story, sparkling with memory and tradition.”
+                  </p>
+                  <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    <span className="rounded-full bg-gold/10 px-3 py-1 text-xs font-medium text-gold-dark">Handcrafted</span>
+                    <span className="rounded-full bg-gold/10 px-3 py-1 text-xs font-medium text-gold-dark">Ethically Sourced</span>
+                    <span className="rounded-full bg-gold/10 px-3 py-1 text-xs font-medium text-gold-dark">Hallmark Certified</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Contact & Visit Us Section */}
+        <section id="contact" className="scroll-mt-20 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <SectionDivider />
+          <div className="rounded-[1.6rem] border border-gold/15 bg-white/80 p-8 shadow-soft sm:p-12">
+            <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.35em] text-gold">Personal Concierge</p>
+                <h2 className="mt-2 font-fraunces text-3xl text-charcoal sm:text-4xl">Visit Us or Connect Online</h2>
+                <p className="mt-4 text-base leading-7 text-charcoal/75">
+                  Looking for bespoke bridal styling, custom resizing, or doorstep insured delivery assistance? Our jewelry specialists are always delighted to help.
+                </p>
+
+                <div className="mt-8 space-y-4 text-sm text-charcoal/80">
+                  <div className="flex items-start gap-3">
+                    <span className="text-gold font-bold">📍</span>
+                    <p>Shop 14-16, Heritage Royale Arcade, Near MG Road, Camp, Pune, Maharashtra 411001</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-gold font-bold">📞</span>
+                    <p>+91 (020) 2613-8890 / +91 98220 12345</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-gold font-bold">✉️</span>
+                    <p>concierge@nandinijewellers.com</p>
+                  </div>
+                </div>
+
+                <div className="mt-8 flex flex-wrap gap-4">
+                  <Link
+                    href="/contact"
+                    className="rounded-full bg-gold px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-soft transition hover:bg-gold-dark"
+                  >
+                    Open Contact Form
+                  </Link>
+                  <a
+                    href="https://wa.me/919822012345"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-full border border-emerald-600 bg-emerald-50 px-6 py-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                  >
+                    Chat on WhatsApp
+                  </a>
+                </div>
+              </div>
+
+              <div className="rounded-[1.4rem] border border-gold/15 bg-ivory/60 p-6 sm:p-8">
+                <h3 className="font-fraunces text-2xl text-charcoal">Showroom Experience Hours</h3>
+                <div className="mt-6 space-y-3 text-sm">
+                  <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                    <span className="font-medium text-charcoal">Monday – Saturday</span>
+                    <span className="text-gold-dark font-semibold">10:30 AM – 8:30 PM</span>
+                  </div>
+                  <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                    <span className="font-medium text-charcoal">Sunday</span>
+                    <span className="text-gold-dark font-semibold">11:00 AM – 7:30 PM</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="font-medium text-charcoal">Private Bridal Appointments</span>
+                    <span className="rounded-full bg-gold/10 px-2.5 py-0.5 text-xs font-semibold text-gold-dark">Available on request</span>
+                  </div>
+                </div>
+
+                <div className="mt-8 rounded-xl border border-gold/20 bg-white p-4 text-center">
+                  <p className="text-xs uppercase tracking-[0.25em] text-gold font-semibold">Insured Pan-India Delivery</p>
+                  <p className="mt-1 text-xs text-charcoal/70">Complimentary secured shipping on all prepaid online orders over ₹999.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

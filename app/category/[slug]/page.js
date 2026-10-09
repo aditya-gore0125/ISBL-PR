@@ -188,7 +188,8 @@ function FilterPanel({ categorySlug, normalizedFilters, allMaterials, highestPri
 }
 
 export async function generateMetadata({ params }) {
-  const categorySlug = params?.slug;
+  const resolvedParams = await Promise.resolve(params);
+  const categorySlug = resolvedParams?.slug;
   const category = await Category.findOne({ slug: categorySlug }).lean();
   const name = getCategoryDisplayName(categorySlug, category);
   return {
@@ -198,8 +199,10 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function CategoryPage({ params, searchParams }) {
-  const categorySlug = params?.slug;
-  const normalizedFilters = normalizeSearchParams(searchParams);
+  const resolvedParams = await Promise.resolve(params);
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const categorySlug = resolvedParams?.slug;
+  const normalizedFilters = normalizeSearchParams(resolvedSearchParams);
 
   await connectToDatabase();
 
