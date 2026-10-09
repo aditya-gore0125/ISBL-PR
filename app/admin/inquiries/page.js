@@ -4,6 +4,15 @@ import ContactInquiry from '@/models/ContactInquiry';
 
 export const dynamic = 'force-dynamic';
 
+function getWhatsAppUrl(phone) {
+  const value = typeof phone === 'string' ? phone.trim() : '';
+  if (!value.startsWith('+')) return null;
+  const digits = value.replace(/\D/g, '');
+  if (digits.length < 8 || digits.length > 15) return null;
+  const text = encodeURIComponent('Hello, I am following up on your inquiry to Nandini Jewellers.');
+  return `https://wa.me/${digits}?text=${text}`;
+}
+
 export default async function AdminInquiriesPage() {
   const { response } = await requireAdmin();
   if (response) redirect('/login');
@@ -35,9 +44,25 @@ export default async function AdminInquiriesPage() {
                   <div>
                     <h3 className="font-semibold text-charcoal">{inquiry.name}</h3>
                     <p className="text-sm text-charcoal/70">
-                      <a className="hover:text-gold-dark" href={`mailto:${inquiry.email}`}>{inquiry.email}</a>
+                      <a className="hover:text-gold-dark" href={`mailto:${encodeURIComponent(inquiry.email)}`}>{inquiry.email}</a>
                       {inquiry.phone ? ` · ${inquiry.phone}` : ''}
                     </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-semibold">
+                      <a className="text-gold-dark hover:text-gold" href={`mailto:${encodeURIComponent(inquiry.email)}?subject=${encodeURIComponent(`Re: ${inquiry.subject}`)}`}>Reply by email</a>
+                      {getWhatsAppUrl(inquiry.phone) ? (
+                        <a
+                          className="text-emerald-700 hover:text-emerald-800"
+                          href={getWhatsAppUrl(inquiry.phone)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Reply on WhatsApp
+                        </a>
+                      ) : null}
+                      <span className={inquiry.isRead ? 'text-charcoal/55' : 'text-gold-dark'}>
+                        {inquiry.isRead ? 'Read' : 'Unread'}
+                      </span>
+                    </div>
                   </div>
                   <time className="text-xs text-charcoal/55" dateTime={inquiry.createdAt.toISOString()}>
                     {inquiry.createdAt.toLocaleString('en-IN')}

@@ -41,6 +41,9 @@ export default function ContactForm() {
         throw new Error('Unable to submit inquiry. Please try again.');
       }
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Too many inquiries have been sent from your connection. Please wait a little while and try again.');
+        }
         throw new Error(data?.message || 'Failed to submit inquiry.');
       }
       if (data?.success !== true) {

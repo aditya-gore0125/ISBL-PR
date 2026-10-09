@@ -1,4 +1,5 @@
 import connectToDatabase from '@/lib/mongodb';
+import { applyRateLimit } from '@/lib/rateLimit';
 import { contactInquirySchema } from '@/lib/schemas';
 import { validateJsonRequest } from '@/lib/validateRequest';
 import ContactInquiry from '@/models/ContactInquiry';
@@ -6,6 +7,13 @@ import ContactInquiry from '@/models/ContactInquiry';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
+  const rateLimitResponse = await applyRateLimit(request, {
+    route: 'contact-inquiry',
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (rateLimitResponse) return rateLimitResponse;
+
   const { data, response } = await validateJsonRequest(request, contactInquirySchema);
   if (response) return response;
 
