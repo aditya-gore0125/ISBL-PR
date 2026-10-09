@@ -31,7 +31,7 @@ function normalizeAddress(address) {
 }
 
 export async function POST(request) {
-  const rateLimitResponse = await applyRateLimit(request, { route: 'orders-create', limit: 10, windowMs: 10 * 60 * 1000 });
+  const rateLimitResponse = await applyRateLimit(request, { route: 'orders-create', limit: 10, windowMs: 10 * 60 * 1000, failOpen: true });
   if (rateLimitResponse) return rateLimitResponse;
 
   const session = await getServerSession(authOptions);

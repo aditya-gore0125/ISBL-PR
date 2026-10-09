@@ -16,7 +16,7 @@ import { CheckoutCartError, getCheckoutPricing } from '@/lib/checkoutPricing';
  */
 
 export async function POST(request) {
-  const rateLimitResponse = await applyRateLimit(request, { route: 'razorpay-create-order', limit: 10, windowMs: 10 * 60 * 1000 });
+  const rateLimitResponse = await applyRateLimit(request, { route: 'razorpay-create-order', limit: 10, windowMs: 10 * 60 * 1000, failOpen: true });
   if (rateLimitResponse) return rateLimitResponse;
 
   const session = await getServerSession(authOptions);
