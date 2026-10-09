@@ -5,7 +5,8 @@ const sampleProducts = [
   {
     name: 'Golden Maharani Necklace',
     slug: 'golden-maharani-necklace',
-    category: 'Necklaces',
+    category: 'Necklace',
+    type: 'Ladies',
     description: 'A statement bridal necklace adorned with American Diamond and gold-plated detailing.',
     material: 'Gold-plated Brass',
     price: 2599,
@@ -27,6 +28,7 @@ const sampleProducts = [
     name: 'Silver Teardrop Earrings',
     slug: 'silver-teardrop-earrings',
     category: 'Earrings',
+    type: 'Ladies',
     description: 'Classic sterling silver earrings with teardrop design and polished finish.',
     material: '925 Sterling Silver',
     price: 1299,
@@ -46,7 +48,8 @@ const sampleProducts = [
   {
     name: 'Rose Gold Halo Ring',
     slug: 'rose-gold-halo-ring',
-    category: 'Rings',
+    category: 'Others',
+    type: 'Ladies',
     description: 'A dazzling ring set with simulated American Diamond in a rose gold finish.',
     material: 'American Diamond',
     price: 1799,
@@ -67,7 +70,8 @@ const sampleProducts = [
   {
     name: 'Pearl Charm Bracelet',
     slug: 'pearl-charm-bracelet',
-    category: 'Bangles & Bracelets',
+    category: 'Bracelet',
+    type: 'Ladies',
     description: 'A delicate bracelet combining pearls and gold-plated accents for everyday wear.',
     material: 'Pearl',
     price: 1099,
@@ -87,7 +91,8 @@ const sampleProducts = [
   {
     name: 'Classic Mangalsutra Set',
     slug: 'classic-mangalsutra-set',
-    category: 'Mangalsutra',
+    category: 'Mangalsutra Set',
+    type: 'Ladies',
     description: 'Traditional mangalsutra with black beads and gold-plated pendant for weddings.',
     material: 'Gold-plated Brass',
     price: 3199,
@@ -107,7 +112,8 @@ const sampleProducts = [
   {
     name: 'Silver Anklet with Bells',
     slug: 'silver-anklet-with-bells',
-    category: 'Anklets',
+    category: 'Others',
+    type: 'Ladies',
     description: 'A playful anklet crafted in sterling silver with delicate bell charms.',
     material: '925 Sterling Silver',
     price: 999,
@@ -127,7 +133,8 @@ const sampleProducts = [
   {
     name: 'Minimal Nose Pin',
     slug: 'minimal-nose-pin',
-    category: 'Nose Pins',
+    category: 'Nath',
+    type: 'Ladies',
     description: 'A minimal nose pin in gold-plated finish with a polished round stud.',
     material: 'Gold-plated Brass',
     price: 499,
@@ -146,7 +153,8 @@ const sampleProducts = [
   {
     name: 'Bridal Combo Set',
     slug: 'bridal-combo-set',
-    category: 'Combos & Sets',
+    category: 'Others',
+    type: 'Ladies',
     description: 'A coordinated set featuring necklace, earrings, and bracelet in American Diamond.',
     material: 'American Diamond',
     price: 4999,
@@ -167,7 +175,8 @@ const sampleProducts = [
   {
     name: 'Kundan Pearl Necklace',
     slug: 'kundan-pearl-necklace',
-    category: 'Necklaces',
+    category: 'Necklace',
+    type: 'Ladies',
     description: 'A heritage-inspired Kundan necklace with cultured pearl drops and intricate detailing.',
     material: 'Kundan',
     price: 3799,
@@ -187,6 +196,7 @@ const sampleProducts = [
     name: 'Diamond Stud Earrings',
     slug: 'diamond-stud-earrings',
     category: 'Earrings',
+    type: 'Ladies',
     description: 'Stud earrings with sparkling stones set in a high-polish sterling silver frame.',
     material: 'American Diamond',
     price: 1499,
@@ -205,7 +215,8 @@ const sampleProducts = [
   {
     name: 'Stackable Gold Ring',
     slug: 'stackable-gold-ring',
-    category: 'Rings',
+    category: 'Others',
+    type: 'Ladies',
     description: 'A modern stackable ring in warm gold finish, perfect for layering.',
     material: 'Gold-plated Brass',
     price: 699,
@@ -224,7 +235,8 @@ const sampleProducts = [
   {
     name: 'Multi-strand Bracelet',
     slug: 'multi-strand-bracelet',
-    category: 'Bangles & Bracelets',
+    category: 'Bracelet',
+    type: 'Ladies',
     description: 'A trendy multi-strand bracelet featuring mixed metal links and crystal accents.',
     material: 'American Diamond',
     price: 1399,
@@ -244,7 +256,8 @@ const sampleProducts = [
   {
     name: 'Minimal Mangalsutra Pendant',
     slug: 'minimal-mangalsutra-pendant',
-    category: 'Mangalsutra',
+    category: 'Mangalsutra Pendant',
+    type: 'Ladies',
     description: 'A subtle mangalsutra pendant designed for daily wear with a modern twist.',
     material: 'Gold-plated Brass',
     price: 2299,
@@ -263,7 +276,8 @@ const sampleProducts = [
   {
     name: 'Boho Pearl Anklet',
     slug: 'boho-pearl-anklet',
-    category: 'Anklets',
+    category: 'Others',
+    type: 'Ladies',
     description: 'A bohemian anklet with freshwater pearl beads and gold-toned chain links.',
     material: 'Pearl',
     price: 899,
@@ -282,7 +296,8 @@ const sampleProducts = [
   {
     name: 'Floral Nose Pin',
     slug: 'floral-nose-pin',
-    category: 'Nose Pins',
+    category: 'Nath',
+    type: 'Ladies',
     description: 'A pretty floral nose pin in gold-plated brass with tiny stone detailing.',
     material: 'Gold-plated Brass',
     price: 549,
@@ -301,7 +316,8 @@ const sampleProducts = [
   {
     name: 'Gold Plated Necklace Set',
     slug: 'gold-plated-necklace-set',
-    category: 'Combos & Sets',
+    category: 'Others',
+    type: 'Ladies',
     description: 'Matching necklace and earrings set with gold-plated finish and intricate design.',
     material: 'Gold-plated Brass',
     price: 2999,
@@ -321,6 +337,7 @@ const sampleProducts = [
     name: 'Pearl Drop Earrings',
     slug: 'pearl-drop-earrings',
     category: 'Earrings',
+    type: 'Ladies',
     description: 'Elegant pearl drop earrings with a chic and timeless silhouette.',
     material: 'Pearl',
     price: 1599,
@@ -339,7 +356,8 @@ const sampleProducts = [
   {
     name: 'Oxidized Statement Ring',
     slug: 'oxidized-statement-ring',
-    category: 'Rings',
+    category: 'Others',
+    type: 'Ladies',
     description: 'Bold oxidized ring with floral engraving and antique-inspired styling.',
     material: '925 Sterling Silver',
     price: 1299,
@@ -358,7 +376,8 @@ const sampleProducts = [
   {
     name: 'Festive Bangle Pair',
     slug: 'festive-bangle-pair',
-    category: 'Bangles & Bracelets',
+    category: 'Bangles',
+    type: 'Ladies',
     description: 'A pair of festive bangles with ornate detailing and gold-plated accents.',
     material: 'Gold-plated Brass',
     price: 1899,
@@ -377,7 +396,8 @@ const sampleProducts = [
   {
     name: 'Traditional Anklet Set',
     slug: 'traditional-anklet-set',
-    category: 'Anklets',
+    category: 'Others',
+    type: 'Ladies',
     description: 'A traditional anklet set with dual chains and elegant beadwork.',
     material: 'Gold-plated Brass',
     price: 1099,
@@ -396,7 +416,8 @@ const sampleProducts = [
   {
     name: 'Pearl & Stone Nose Pin',
     slug: 'pearl-stone-nose-pin',
-    category: 'Nose Pins',
+    category: 'Nath',
+    type: 'Ladies',
     description: 'A decorative nose pin combining pearl and stone embellishments.',
     material: 'Pearl',
     price: 649,
@@ -415,7 +436,8 @@ const sampleProducts = [
   {
     name: 'Eternal Love Set',
     slug: 'eternal-love-set',
-    category: 'Combos & Sets',
+    category: 'Others',
+    type: 'Ladies',
     description: 'A romantic set with heart-themed necklace and matching earrings.',
     material: 'American Diamond',
     price: 3899,
@@ -432,26 +454,113 @@ const sampleProducts = [
     metaTitle: 'Eternal Love Set | Jewelry Gift Set',
     metaDescription: 'Beautiful heart-themed jewelry set with necklace and earrings in one package.',
   },
+  {
+    name: 'Classic Gents Chain',
+    slug: 'classic-gents-chain',
+    category: 'Chain',
+    type: 'Gents',
+    description: 'A polished chain designed for everyday gents styling.',
+    material: 'Stainless Steel',
+    price: 1899,
+    images: ['https://placehold.co/600x600?text=Gents+Chain'],
+    stock: 18,
+    isFeatured: true,
+    isNewArrival: true,
+    rating: 4.5,
+    numReviews: 6,
+    reviews: [],
+    metaTitle: 'Classic Gents Chain | Men\'s Jewelry',
+    metaDescription: 'A polished everyday chain for a refined gents look.',
+  },
+  {
+    name: 'Steel Link Bracelet',
+    slug: 'steel-link-bracelet',
+    category: 'Bracelet',
+    type: 'Gents',
+    description: 'A durable link bracelet with a clean contemporary profile.',
+    material: 'Stainless Steel',
+    price: 1499,
+    images: ['https://placehold.co/600x600?text=Gents+Bracelet'],
+    stock: 24,
+    isFeatured: false,
+    isNewArrival: true,
+    rating: 4.4,
+    numReviews: 5,
+    reviews: [],
+    metaTitle: 'Steel Link Bracelet | Men\'s Jewelry',
+    metaDescription: 'Contemporary stainless steel link bracelet for everyday wear.',
+  },
+  {
+    name: 'Textured Silver Kada',
+    slug: 'textured-silver-kada',
+    category: 'Kada',
+    type: 'Gents',
+    description: 'A sturdy textured kada with a classic silver finish.',
+    material: 'Silver-plated Brass',
+    price: 2199,
+    images: ['https://placehold.co/600x600?text=Gents+Kada'],
+    stock: 12,
+    isFeatured: true,
+    isNewArrival: false,
+    rating: 4.6,
+    numReviews: 8,
+    reviews: [],
+    metaTitle: 'Textured Silver Kada | Men\'s Jewelry',
+    metaDescription: 'Classic textured kada with a bold silver-plated finish.',
+  },
+  {
+    name: 'Minimal Gents Earring',
+    slug: 'minimal-gents-earring',
+    category: 'Earring',
+    type: 'Gents',
+    description: 'A minimal polished earring for understated everyday style.',
+    material: 'Stainless Steel',
+    price: 599,
+    images: ['https://placehold.co/600x600?text=Gents+Earring'],
+    stock: 32,
+    isFeatured: false,
+    isNewArrival: true,
+    rating: 4.2,
+    numReviews: 4,
+    reviews: [],
+    metaTitle: 'Minimal Gents Earring | Men\'s Jewelry',
+    metaDescription: 'A simple polished earring for an understated gents look.',
+  },
+  {
+    name: 'Matte Gents Ring',
+    slug: 'matte-gents-ring',
+    category: 'Others',
+    type: 'Gents',
+    description: 'A matte-finish statement ring with a clean modern silhouette.',
+    material: 'Stainless Steel',
+    price: 899,
+    images: ['https://placehold.co/600x600?text=Gents+Ring'],
+    stock: 20,
+    isFeatured: false,
+    isNewArrival: false,
+    rating: 4.3,
+    numReviews: 3,
+    reviews: [],
+    metaTitle: 'Matte Gents Ring | Men\'s Jewelry',
+    metaDescription: 'Modern matte-finish ring for everyday gents styling.',
+  },
 ];
 
-export async function GET() {
+async function seed() {
   if (process.env.NODE_ENV !== 'development') {
     return new Response('Seed route is only available in development.', { status: 403 });
   }
 
-  await connectToDatabase();
-
   try {
-    const existingSlugs = sampleProducts.map((product) => product.slug);
-    const existingCount = await Product.countDocuments({ slug: { $in: existingSlugs } });
-
-    if (existingCount > 0) {
-      return new Response('Sample products already exist in the database.', { status: 200 });
-    }
-
+    await connectToDatabase();
+    await Product.deleteMany({});
     await Product.insertMany(sampleProducts);
-    return new Response('Seeded 20 sample jewelry products.', { status: 201 });
+    return new Response(`Seeded ${sampleProducts.length} sample jewelry products.`, { status: 201 });
   } catch (error) {
-    return new Response(`Seed failed: ${error.message}`, { status: 500 });
+    console.error('Seed failed', error);
+    return Response.json({ message: 'Unable to seed sample products.' }, { status: 500 });
   }
 }
+
+export const GET = seed;
+export const POST = seed;

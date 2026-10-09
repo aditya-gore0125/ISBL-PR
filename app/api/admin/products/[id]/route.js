@@ -1,88 +1,64 @@
-import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import Product from '@/models/Product';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { normalizeProductPayload } from '@/lib/adminProduct';
+import { requireAdmin } from '@/lib/requireAdmin';
+import { productUpdateSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 
-export const dynamic = 'force-dynamic';
+function invalidId(error) {
+  return error?.name === 'CastError';
+}
 
 export async function GET(request, { params }) {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
-    const { id } = await Promise.resolve(params);
     await connectToDatabase();
-
-    const product = await Product.findById(id).lean();
-    if (!product) {
-      return Response.json({ message: 'Product not found.' }, { status: 404 });
-    }
-
-    return Response.json({ product });
+    const product = await Product.findById(params.id).lean();
+    if (!product) return NextResponse.json({ message: 'Product not found.' }, { status: 404 });
+    return NextResponse.json({ product });
   } catch (error) {
-    console.error('Admin product GET error', error);
-    return Response.json({ message: 'Failed to load product.' }, { status: 500 });
+    if (invalidId(error)) return NextResponse.json({ message: 'Invalid product id.' }, { status: 400 });
+    console.error('Admin product get error', error);
+    return NextResponse.json({ message: 'Unable to load product.' }, { status: 500 });
   }
 }
 
 export async function PUT(request, { params }) {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
-    const session = await getServerSession(authOptions);
-    if ((!session?.user?.id || session.user.role !== 'admin') && process.env.NODE_ENV !== 'development') {
-      return Response.json({ message: 'Unauthorized. Admin access required.' }, { status: 401 });
-    }
-
-    const { id } = await Promise.resolve(params);
-    const body = await request.json();
+    const { data, response } = await validateJsonRequest(request, productUpdateSchema);
+    if (response) return response;
+    if (!Object.keys(data).length) return NextResponse.json({ message: 'No product changes were provided.' }, { status: 400 });
+    const payload = normalizeProductPayload(data, { partial: true });
     await connectToDatabase();
-
-    const product = await Product.findByIdAndUpdate(
-      id,
-      {
-        name: body.name,
-        slug: body.slug,
-        category: body.category,
-        description: body.description,
-        material: body.material,
-        price: Number(body.price),
-        discountPrice: body.discountPrice ? Number(body.discountPrice) : null,
-        images: Array.isArray(body.images) ? body.images : [],
-        stock: Number(body.stock || 0),
-        isFeatured: Boolean(body.isFeatured),
-        isNewArrival: Boolean(body.isNewArrival),
-        metaTitle: body.metaTitle,
-        metaDescription: body.metaDescription,
-      },
-      { new: true }
-    );
-
-    if (!product) {
-      return Response.json({ message: 'Product not found.' }, { status: 404 });
-    }
-
-    return Response.json({ product });
+    const product = await Product.findByIdAndUpdate(params.id, payload, { new: true, runValidators: true }).lean();
+    if (!product) return NextResponse.json({ message: 'Product not found.' }, { status: 404 });
+    return NextResponse.json({ product });
   } catch (error) {
-    console.error('Admin product PUT error', error);
-    return Response.json({ message: error.message || 'Failed to update product.' }, { status: 500 });
+    if (invalidId(error)) return NextResponse.json({ message: 'Invalid product id.' }, { status: 400 });
+    const status = error.name === 'ValidationError' || error.code === 11000 ? 400 : 500;
+    console.error('Admin product update error', error);
+    return NextResponse.json({ message: error.message || 'Unable to update product.' }, { status });
   }
 }
 
 export async function DELETE(request, { params }) {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
-    const session = await getServerSession(authOptions);
-    if ((!session?.user?.id || session.user.role !== 'admin') && process.env.NODE_ENV !== 'development') {
-      return Response.json({ message: 'Unauthorized. Admin access required.' }, { status: 401 });
-    }
-
-    const { id } = await Promise.resolve(params);
     await connectToDatabase();
-
-    const product = await Product.findByIdAndDelete(id);
-    if (!product) {
-      return Response.json({ message: 'Product not found.' }, { status: 404 });
-    }
-
-    return Response.json({ success: true });
+    const product = await Product.findByIdAndDelete(params.id).lean();
+    if (!product) return NextResponse.json({ message: 'Product not found.' }, { status: 404 });
+    return NextResponse.json({ message: 'Product deleted.' });
   } catch (error) {
-    console.error('Admin product DELETE error', error);
-    return Response.json({ message: error.message || 'Failed to delete product.' }, { status: 500 });
+    if (invalidId(error)) return NextResponse.json({ message: 'Invalid product id.' }, { status: 400 });
+    console.error('Admin product delete error', error);
+    return NextResponse.json({ message: 'Unable to delete product.' }, { status: 500 });
   }
 }
-

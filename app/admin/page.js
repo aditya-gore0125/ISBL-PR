@@ -2,6 +2,8 @@ import connectToDatabase from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
 
+export const dynamic = 'force-dynamic';
+
 function formatPrice(value) {
   return `₹${Number(value || 0).toLocaleString('en-IN')}`;
 }
@@ -9,13 +11,21 @@ function formatPrice(value) {
 export default async function AdminDashboardPage() {
   await connectToDatabase();
 
-  const [orders, products] = await Promise.all([
-    Order.find({}).sort({ createdAt: -1 }).lean(),
-    Product.find({}).sort({ stock: 1, name: 1 }).lean(),
+  const [orderCount, productCount, revenueResults, statusResults, lowStockList, lowStockCount] = await Promise.all([
+    Order.countDocuments(),
+    Product.countDocuments(),
+    Order.aggregate([
+      { $match: { paymentStatus: 'paid' } },
+      { $group: { _id: null, totalRevenue: { $sum: { $ifNull: ['$totalAmount', 0] } } } },
+    ]),
+    Order.aggregate([
+      { $group: { _id: { $ifNull: ['$orderStatus', 'pending'] }, count: { $sum: 1 } } },
+    ]),
+    Product.find({ stock: { $lt: 5 } }).sort({ stock: 1, name: 1 }).limit(8).lean(),
+    Product.countDocuments({ stock: { $lt: 5 } }),
   ]);
 
-  const paidOrders = orders.filter((order) => order.paymentStatus === 'paid');
-  const totalRevenue = paidOrders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+  const totalRevenue = revenueResults[0]?.totalRevenue || 0;
 
   const statusCounts = {
     pending: 0,
@@ -28,23 +38,17 @@ export default async function AdminDashboardPage() {
     returned: 0,
   };
 
-  orders.forEach((order) => {
-    const key = order.orderStatus || 'pending';
-    if (statusCounts[key] !== undefined) {
-      statusCounts[key] += 1;
+  statusResults.forEach(({ _id: status, count }) => {
+    if (statusCounts[status] !== undefined) {
+      statusCounts[status] = count;
     }
   });
 
-  const lowStockList = products
-    .filter((product) => Number(product.stock || 0) < 5)
-    .sort((a, b) => Number(a.stock || 0) - Number(b.stock || 0))
-    .slice(0, 8);
-
   const stats = [
-    { label: 'Total orders', value: orders.length },
+    { label: 'Total orders', value: orderCount },
     { label: 'Paid revenue', value: formatPrice(totalRevenue) },
-    { label: 'Low stock', value: lowStockList.length },
-    { label: 'Products', value: products.length },
+    { label: 'Low stock', value: lowStockCount },
+    { label: 'Products', value: productCount },
   ];
 
   return (

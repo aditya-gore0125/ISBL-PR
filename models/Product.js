@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { PRODUCT_CATEGORIES, PRODUCT_TYPES } from '../lib/productOptions.js';
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -18,16 +19,12 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: [
-        'Necklaces',
-        'Earrings',
-        'Rings',
-        'Bangles & Bracelets',
-        'Mangalsutra',
-        'Anklets',
-        'Nose Pins',
-        'Combos & Sets',
-      ],
+      enum: PRODUCT_CATEGORIES,
+    },
+    type: {
+      type: String,
+      required: true,
+      enum: PRODUCT_TYPES,
     },
     description: { type: String },
     material: { type: String },
@@ -45,6 +42,8 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+productSchema.index({ name: 'text', description: 'text', category: 'text' });
 
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 export default Product;

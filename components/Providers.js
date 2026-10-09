@@ -6,10 +6,7 @@ import { CartProvider } from '@/lib/CartContext';
 export default function Providers({ children }) {
   return (
     <SessionProvider>
-      <CartProvider>
-        {children}
-      </CartProvider>
+      <CartProvider>{children}</CartProvider>
     </SessionProvider>
   );
 }
-

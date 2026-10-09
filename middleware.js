@@ -1,5 +1,8 @@
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
+import { getAuthSecret } from '@/lib/env';
+
+const nextAuthSecret = getAuthSecret();
 
 export async function middleware(request) {
   if (!request.nextUrl.pathname.startsWith('/admin')) {
@@ -8,7 +11,7 @@ export async function middleware(request) {
 
   const token = await getToken({
     req: request,
-    secret: process.env.NEXTAUTH_SECRET || 'dev-nextauth-secret',
+    secret: nextAuthSecret,
   });
 
   if (!token || token.role !== 'admin') {

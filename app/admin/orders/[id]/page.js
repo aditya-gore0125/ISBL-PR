@@ -2,9 +2,12 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import SafeImage from '@/components/SafeImage';
 import { useRouter } from 'next/navigation';
+import { formatOrderId } from '@/lib/utils';
 
 const orderPipeline = ['pending', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered'];
+const exceptionStatuses = ['cancelled', 'returned'];
 
 function formatPrice(value) {
   return `₹${Number(value || 0).toLocaleString('en-IN')}`;
@@ -25,6 +28,7 @@ export default function AdminOrderDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     Promise.resolve(params).then((resolved) => {
@@ -59,6 +63,7 @@ export default function AdminOrderDetailPage({ params }) {
     event.preventDefault();
     setSaving(true);
     setError('');
+    setSuccess('');
 
     try {
       const targetId = orderId || (params?.id);
@@ -78,6 +83,7 @@ export default function AdminOrderDetailPage({ params }) {
       }
 
       setOrder(data.order);
+      setSuccess('Order updated successfully.');
       router.refresh();
     } catch (saveError) {
       setError(saveError.message || 'Unable to update order.');
@@ -99,7 +105,7 @@ export default function AdminOrderDetailPage({ params }) {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Order details</p>
-          <h2 className="mt-2 font-fraunces text-3xl text-charcoal">#{order._id.slice(-6)}</h2>
+          <h2 className="mt-2 font-fraunces text-3xl text-charcoal">{formatOrderId(order._id)}</h2>
         </div>
         <Link href="/admin/orders" className="rounded-full border border-gold/25 bg-gold/5 px-4 py-2 text-sm font-semibold text-charcoal transition hover:bg-gold/10">
           Back to orders
@@ -132,6 +138,10 @@ export default function AdminOrderDetailPage({ params }) {
               <dt className="text-xs uppercase tracking-[0.2em] text-charcoal/55">Placed on</dt>
               <dd className="mt-1 text-sm text-charcoal/80">{formatDate(order.createdAt)}</dd>
             </div>
+            <div>
+              <dt className="text-xs uppercase tracking-[0.2em] text-charcoal/55">Razorpay payment ID</dt>
+              <dd className="mt-1 break-all text-sm text-charcoal/80">{order.paymentId || '—'}</dd>
+            </div>
           </dl>
 
           <div className="mt-6 rounded-[1rem] border border-gold/10 bg-ivory p-4">
@@ -152,7 +162,7 @@ export default function AdminOrderDetailPage({ params }) {
               {order.items?.map((item) => (
                 <div key={`${item.product}-${item.name}`} className="flex items-center justify-between rounded-[1rem] border border-gold/10 bg-ivory p-3">
                   <div className="flex items-center gap-3">
-                    <img src={item.image} alt={item.name} className="h-14 w-14 rounded-lg object-cover" />
+                    <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} sizes="56px" className="h-14 w-14 rounded-lg object-cover" />
                     <div>
                       <p className="text-sm font-semibold text-charcoal">{item.name}</p>
                       <p className="text-xs text-charcoal/60">Qty: {item.quantity}</p>
@@ -176,9 +186,16 @@ export default function AdminOrderDetailPage({ params }) {
                 onChange={(event) => setOrder((current) => ({ ...current, orderStatus: event.target.value }))}
                 className="h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none focus:border-gold"
               >
-                {orderPipeline.map((status) => (
-                  <option key={status} value={status}>{status.replace('_', ' ')}</option>
-                ))}
+                <optgroup label="Fulfillment">
+                  {orderPipeline.map((status) => (
+                    <option key={status} value={status}>{status.replaceAll('_', ' ')}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Exception">
+                  {exceptionStatuses.map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </optgroup>
               </select>
             </label>
 
@@ -207,7 +224,8 @@ export default function AdminOrderDetailPage({ params }) {
               <p className="mt-1 text-xl font-fraunces text-charcoal">{formatPrice(order.totalAmount)}</p>
             </div>
 
-            {error ? <div className="rounded-[1rem] border border-maroon/20 bg-maroon/5 px-4 py-3 text-sm text-maroon">{error}</div> : null}
+            {error ? <div role="alert" aria-live="polite" className="rounded-[1rem] border border-maroon/20 bg-maroon/5 px-4 py-3 text-sm text-maroon">{error}</div> : null}
+            {success ? <div role="status" className="rounded-[1rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{success}</div> : null}
 
             <button type="submit" disabled={saving} className="w-full rounded-full bg-gold px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark disabled:cursor-not-allowed disabled:opacity-70">
               {saving ? 'Saving changes...' : 'Save shipping update'}

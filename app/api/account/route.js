@@ -1,90 +1,108 @@
 import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
+import { accountSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 import User from '@/models/User';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
+function serializeUser(user) {
+  return {
+    id: user._id.toString(),
+    name: user.name,
+    email: user.email,
+    phone: user.phone || '',
+    role: user.role,
+    addresses: user.addresses || [],
+  };
+}
+
+async function getAuthenticatedSession() {
+  const session = await getServerSession(authOptions);
+  return session?.user?.id ? session : null;
+}
+
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return Response.json({ message: 'Unauthorized.' }, { status: 401 });
+    const session = await getAuthenticatedSession();
+    if (!session) {
+      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
     }
 
     await connectToDatabase();
-    const user = await User.findById(session.user.id).select('-password').lean();
+    const user = await User.findById(session.user.id).lean();
 
     if (!user) {
-      return Response.json({ message: 'User not found.' }, { status: 404 });
+      return NextResponse.json({ message: 'User not found.' }, { status: 404 });
     }
 
-    return Response.json({
-      user: {
-        id: user._id.toString(),
-        name: user.name,
-        email: user.email,
-        phone: user.phone || '',
-        addresses: user.addresses || [],
-      },
-    });
+    return NextResponse.json({ user: serializeUser(user) });
   } catch (error) {
     console.error('Account GET error', error);
-    return Response.json({ message: 'Failed to fetch account.' }, { status: 500 });
+    return NextResponse.json({ message: 'Unable to load account right now.' }, { status: 500 });
   }
 }
 
 export async function PUT(request) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return Response.json({ message: 'Unauthorized.' }, { status: 401 });
+    const session = await getAuthenticatedSession();
+    if (!session) {
+      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
     }
 
-    const body = await request.json();
+    const { data: body, response } = await validateJsonRequest(request, accountSchema);
+    if (response) return response;
+
+    const update = {};
+    if (body?.profile !== undefined) {
+      update.name = body.profile.name;
+      update.phone = body.profile.phone;
+    }
+
+    if (body?.addresses !== undefined) {
+      update.addresses = body.addresses;
+    }
+
+    if (!Object.keys(update).length) {
+      return NextResponse.json({ message: 'No account changes were provided.' }, { status: 400 });
+    }
+
     await connectToDatabase();
-
-    const updates = {};
-
-    if (body.profile) {
-      if (typeof body.profile.name === 'string') {
-        updates.name = body.profile.name.trim();
-      }
-      if (typeof body.profile.phone === 'string') {
-        updates.phone = body.profile.phone.trim();
-      }
-    }
-
-    if (Array.isArray(body.addresses)) {
-      updates.addresses = body.addresses;
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
       session.user.id,
-      { $set: updates },
+      { $set: update },
       { new: true, runValidators: true }
-    )
-      .select('-password')
-      .lean();
+    ).lean();
 
-    if (!updatedUser) {
-      return Response.json({ message: 'User not found.' }, { status: 404 });
+    if (!user) {
+      return NextResponse.json({ message: 'User not found.' }, { status: 404 });
     }
 
-    return Response.json({
-      user: {
-        id: updatedUser._id.toString(),
-        name: updatedUser.name,
-        email: updatedUser.email,
-        phone: updatedUser.phone || '',
-        addresses: updatedUser.addresses || [],
-      },
-    });
+    return NextResponse.json({ message: 'Account updated successfully.', user: serializeUser(user) });
   } catch (error) {
     console.error('Account PUT error', error);
-    return Response.json({ message: error.message || 'Failed to update account.' }, { status: 500 });
+    return NextResponse.json({ message: 'Unable to update account right now.' }, { status: 500 });
   }
 }
 
+function methodNotAllowed() {
+  return NextResponse.json({ message: 'Method not allowed.' }, { status: 405 });
+}
+
+export async function POST() {
+  return methodNotAllowed();
+}
+
+export async function PATCH() {
+  return methodNotAllowed();
+}
+
+export async function DELETE() {
+  return methodNotAllowed();
+}
+
+export async function OPTIONS() {
+  return methodNotAllowed();
+}

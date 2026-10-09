@@ -1,51 +1,39 @@
-import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import Product from '@/models/Product';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-export const dynamic = 'force-dynamic';
+import { normalizeProductPayload } from '@/lib/adminProduct';
+import { requireAdmin } from '@/lib/requireAdmin';
+import { productCreateSchema } from '@/lib/schemas';
+import { validateJsonRequest } from '@/lib/validateRequest';
 
 export async function GET() {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
     await connectToDatabase();
-    const products = await Product.find({}).sort({ createdAt: -1 }).lean();
-    return Response.json({ products });
+    const products = await Product.find().sort({ createdAt: -1 }).lean();
+    return NextResponse.json({ products });
   } catch (error) {
-    console.error('Admin products GET error', error);
-    return Response.json({ message: 'Failed to load products.' }, { status: 500 });
+    console.error('Admin product list error', error);
+    return NextResponse.json({ message: 'Unable to load products.' }, { status: 500 });
   }
 }
 
 export async function POST(request) {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
-    const session = await getServerSession(authOptions);
-    if ((!session?.user?.id || session.user.role !== 'admin') && process.env.NODE_ENV !== 'development') {
-      return Response.json({ message: 'Unauthorized. Admin access required.' }, { status: 401 });
-    }
-
-    const body = await request.json();
+    const { data, response } = await validateJsonRequest(request, productCreateSchema);
+    if (response) return response;
+    const payload = normalizeProductPayload(data);
     await connectToDatabase();
-
-    const product = await Product.create({
-      name: body.name,
-      slug: body.slug,
-      category: body.category,
-      description: body.description,
-      material: body.material,
-      price: Number(body.price),
-      discountPrice: body.discountPrice ? Number(body.discountPrice) : undefined,
-      images: Array.isArray(body.images) ? body.images : [],
-      stock: Number(body.stock || 0),
-      isFeatured: Boolean(body.isFeatured),
-      isNewArrival: Boolean(body.isNewArrival),
-      metaTitle: body.metaTitle,
-      metaDescription: body.metaDescription,
-    });
-
-    return Response.json({ product }, { status: 201 });
+    const product = await Product.create(payload);
+    return NextResponse.json({ product }, { status: 201 });
   } catch (error) {
-    console.error('Admin products POST error', error);
-    return Response.json({ message: error.message || 'Failed to create product.' }, { status: 500 });
+    console.error('Admin product create error', error);
+    const status = error.name === 'ValidationError' || error.code === 11000 ? 400 : 500;
+    return NextResponse.json({ message: error.message || 'Unable to create product.' }, { status });
   }
 }
-
