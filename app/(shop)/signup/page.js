@@ -37,8 +37,8 @@ function SignupForm() {
       nextErrors.phone = 'Enter a valid 10-digit mobile number.';
     }
 
-    if (form.password.length < 6) {
-      nextErrors.password = 'Password must be at least 6 characters long.';
+    if (form.password.length < 8) {
+      nextErrors.password = 'Password must be at least 8 characters long.';
     }
 
     if (form.confirmPassword !== form.password) {
@@ -158,9 +158,11 @@ function SignupForm() {
                 name="password"
                 value={form.password}
                 onChange={handleChange}
+                minLength={8}
                 className="mt-2 h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none transition focus:border-gold"
                 placeholder="Create a password"
               />
+              <p className="mt-1 text-xs text-charcoal/60">Use at least 8 characters.</p>
               {errors.password ? <p role="alert" aria-live="polite" className="mt-1 text-xs text-maroon">{errors.password}</p> : null}
             </label>
 
