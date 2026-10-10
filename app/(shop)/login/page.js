@@ -69,7 +69,21 @@ function LoginForm() {
         return;
       }
 
+      // Check session role for intelligent redirection
+      try {
+        const sessionRes = await fetch('/api/auth/session');
+        const sessionData = await sessionRes.json();
+        if (sessionData?.user?.role === 'admin' && redirectTo === '/') {
+          router.push('/admin');
+          router.refresh();
+          return;
+        }
+      } catch {
+        // Fall back to default redirect
+      }
+
       router.push(result?.url || redirectTo);
+      router.refresh();
     } catch (error) {
       console.error('Login error', error);
       setSubmitError('Unable to sign in right now. Please try again.');

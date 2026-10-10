@@ -178,6 +178,16 @@ export default function Navbar({ categories = [] }) {
                 </button>
                 {accountOpen ? (
                   <div role="menu" className="absolute right-0 top-12 w-48 rounded-[1rem] border border-gold/15 bg-white p-2 shadow-soft">
+                    {session?.user?.role === 'admin' ? (
+                      <Link
+                        href="/admin"
+                        role="menuitem"
+                        className="flex min-h-11 items-center rounded-[0.7rem] bg-gold/10 px-3 py-2 text-sm font-semibold text-gold-dark transition hover:bg-gold hover:text-white"
+                        onClick={() => setAccountOpen(false)}
+                      >
+                        ⚙️ Admin Dashboard
+                      </Link>
+                    ) : null}
                     <Link href="/account" role="menuitem" className="flex min-h-11 items-center rounded-[0.7rem] px-3 py-2 text-sm text-charcoal transition hover:bg-gold/10 hover:text-gold-dark" onClick={() => setAccountOpen(false)}>
                       Account
                     </Link>
