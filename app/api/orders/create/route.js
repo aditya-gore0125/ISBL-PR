@@ -104,6 +104,35 @@ export async function POST(request) {
       return restored;
     };
 
+    const orderData = {
+      user: session.user.id,
+      razorpayOrderId: orderId,
+      items: pricing.items.map(({ product, name, image, price, quantity, size }) => ({
+        product,
+        name,
+        image,
+        price,
+        quantity,
+        ...(size ? { size } : {}),
+      })),
+      shippingAddress,
+      paymentId,
+      paymentStatus: 'paid',
+      totalAmount: pricing.total,
+    };
+    const createPendingReviewOrder = async () => {
+      await rollbackStock();
+      console.error('Paid order requires manual refund after stock decrement failure', {
+        razorpayOrderId: orderId,
+      });
+      const order = await Order.create({
+        ...orderData,
+        orderStatus: 'pending',
+        needsReview: true,
+      });
+      return Response.json({ order }, { status: 201 });
+    };
+
     for (const item of pricing.items) {
       const filter = item.size
         ? {
@@ -119,17 +148,11 @@ export async function POST(request) {
       let result;
       try {
         result = await Product.updateOne(filter, update);
-      } catch (error) {
-        await rollbackStock();
-        throw error;
+      } catch {
+        return await createPendingReviewOrder();
       }
       if (result.modifiedCount !== 1) {
-        const restored = await rollbackStock();
-        const label = item.size ? ` size ${item.size}` : '';
-        if (!restored) {
-          return Response.json({ message: 'Stock changed during checkout and could not be fully restored. Please contact support.' }, { status: 500 });
-        }
-        return Response.json({ message: `${item.name}${label} no longer has enough stock. Please update your cart.` }, { status: 400 });
+        return await createPendingReviewOrder();
       }
       decrementedItems.push(item);
     }
@@ -137,22 +160,9 @@ export async function POST(request) {
     let order;
     try {
       order = await Order.create({
-        user: session.user.id,
-        razorpayOrderId: orderId,
-        items: pricing.items.map(({ product, name, image, price, quantity, size }) => ({
-          product,
-          name,
-          image,
-          price,
-          quantity,
-          ...(size ? { size } : {}),
-        })),
-        shippingAddress,
-        paymentId,
-        paymentStatus: 'paid',
+        ...orderData,
         orderStatus: 'confirmed',
         needsReview: false,
-        totalAmount: pricing.total,
       });
     } catch (error) {
       if (error.code === 11000) {
