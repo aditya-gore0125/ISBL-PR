@@ -1,6 +1,6 @@
 import connectToDatabase from '@/lib/mongodb';
 import { applyRateLimit } from '@/lib/rateLimit';
-import { contactInquirySchema } from '@/lib/schemas';
+import { contactSchema } from '@/lib/schemas';
 import { validateJsonRequest } from '@/lib/validateRequest';
 import ContactInquiry from '@/models/ContactInquiry';
 
@@ -8,18 +8,18 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
   const rateLimitResponse = await applyRateLimit(request, {
-    route: 'contact-inquiry',
+    route: 'contact',
     limit: 5,
-    windowMs: 15 * 60 * 1000,
+    windowMs: 10 * 60 * 1000,
   });
   if (rateLimitResponse) return rateLimitResponse;
 
-  const { data, response } = await validateJsonRequest(request, contactInquirySchema);
+  const { data, response } = await validateJsonRequest(request, contactSchema);
   if (response) return response;
 
   try {
     await connectToDatabase();
-    await ContactInquiry.create(data);
+    await ContactInquiry.create({ ...data, subject: data.subject || 'General Inquiry' });
 
     return Response.json({
       success: true,
