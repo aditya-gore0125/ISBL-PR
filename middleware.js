@@ -5,18 +5,15 @@ import { getAuthSecret } from '@/lib/env';
 const nextAuthSecret = getAuthSecret();
 
 export async function middleware(request) {
-  if (!request.nextUrl.pathname.startsWith('/admin')) {
-    return NextResponse.next();
-  }
-
+  const pathname = request.nextUrl.pathname;
   const token = await getToken({
     req: request,
     secret: nextAuthSecret,
   });
 
-  if (!token || token.role !== 'admin') {
+  if (!token || (pathname.startsWith('/admin') && token.role !== 'admin')) {
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
+    loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -24,5 +21,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/account/:path*', '/checkout/:path*'],
 };
