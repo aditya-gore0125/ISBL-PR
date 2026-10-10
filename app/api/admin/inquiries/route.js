@@ -45,3 +45,4 @@ export async function DELETE(request) {
   await ContactInquiry.findByIdAndDelete(id);
   return NextResponse.json({ success: true });
 }
+

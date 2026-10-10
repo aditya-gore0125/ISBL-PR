@@ -29,6 +29,7 @@ export async function POST(request, context) {
 
 		const parsed = credentialFormSchema.safeParse(form);
 		if (!parsed.success) {
+			console.error('Credentials form validation error:', parsed.error);
 			return NextResponse.json({ message: 'Invalid credentials request.' }, { status: 400 });
 		}
 	}
