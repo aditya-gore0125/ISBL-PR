@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import { sanitizeRedirectPath } from '@/lib/utils';
 
 const initialForm = {
   email: '',
@@ -13,10 +14,7 @@ const initialForm = {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const requestedRedirect = searchParams.get('redirect') || '';
-  const redirectTo = requestedRedirect.startsWith('/') && !requestedRedirect.startsWith('//')
-    ? requestedRedirect
-    : '/';
+  const redirectTo = sanitizeRedirectPath(searchParams.get('redirect'));
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');

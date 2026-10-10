@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import { sanitizeRedirectPath } from '@/lib/utils';
 
 const initialForm = {
   name: '',
@@ -15,7 +16,7 @@ const initialForm = {
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/';
+  const redirectTo = sanitizeRedirectPath(searchParams.get('redirect'));
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
