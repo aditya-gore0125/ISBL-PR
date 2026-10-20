@@ -14,11 +14,12 @@ const navItems = [
   { href: '/admin/orders', label: 'Orders' },
   { href: '/admin/inquiries', label: 'Inquiries' },
   { href: '/admin/categories', label: 'Categories' },
+  { href: '/admin/inquiries', label: 'Inquiries' },
 ];
 
 export default async function AdminLayout({ children }) {
   const session = await getServerSession(authOptions);
-  if (!session || session.user?.role !== 'admin') redirect('/login');
+  if (!session || session.user?.role !== 'admin') redirect('/login?redirect=/admin');
 
   return (
     <div className="min-h-screen bg-ivory text-charcoal">

@@ -1,82 +1,111 @@
-import { redirect } from 'next/navigation';
-import { requireAdmin } from '@/lib/requireAdmin';
+import connectToDatabase from '@/lib/mongodb';
 import ContactInquiry from '@/models/ContactInquiry';
 
 export const dynamic = 'force-dynamic';
-
-function getWhatsAppUrl(phone) {
-  const value = typeof phone === 'string' ? phone.trim() : '';
-  if (!value.startsWith('+')) return null;
-  const digits = value.replace(/\D/g, '');
-  if (digits.length < 8 || digits.length > 15) return null;
-  const text = encodeURIComponent('Hello, I am following up on your inquiry to Nandini Jewellers.');
-  return `https://wa.me/${digits}?text=${text}`;
-}
+export const metadata = { title: 'Customer Inquiries | Admin' };
 
 export default async function AdminInquiriesPage() {
-  const { response } = await requireAdmin();
-  if (response) redirect('/login');
+  await connectToDatabase();
 
-  let inquiries;
-  try {
-    inquiries = await ContactInquiry.find({}).sort({ createdAt: -1 }).limit(100).lean();
-  } catch (error) {
-    console.error('Admin inquiries read failed', {
-      name: error?.name || 'UnknownError',
-      code: error?.code || 'unknown',
-    });
-    throw error;
-  }
+  const inquiries = await ContactInquiry.find({})
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const unread = inquiries.filter((i) => !i.read).length;
 
   return (
-    <section className="space-y-6">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Customer messages</p>
-        <h2 className="mt-2 font-fraunces text-3xl text-charcoal">Inquiries</h2>
-      </div>
-
-      <div className="overflow-hidden rounded-[1.5rem] border border-gold/15 bg-white shadow-soft">
-        {inquiries.length ? (
-          <ul className="divide-y divide-gold/10">
-            {inquiries.map((inquiry) => (
-              <li key={String(inquiry._id)} className="space-y-3 p-5 sm:p-6">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h3 className="font-semibold text-charcoal">{inquiry.name}</h3>
-                    <p className="text-sm text-charcoal/70">
-                      <a className="hover:text-gold-dark" href={`mailto:${encodeURIComponent(inquiry.email)}`}>{inquiry.email}</a>
-                      {inquiry.phone ? ` · ${inquiry.phone}` : ''}
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-semibold">
-                      <a className="text-gold-dark hover:text-gold" href={`mailto:${encodeURIComponent(inquiry.email)}?subject=${encodeURIComponent(`Re: ${inquiry.subject}`)}`}>Reply by email</a>
-                      {getWhatsAppUrl(inquiry.phone) ? (
-                        <a
-                          className="text-emerald-700 hover:text-emerald-800"
-                          href={getWhatsAppUrl(inquiry.phone)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Reply on WhatsApp
-                        </a>
-                      ) : null}
-                      <span className={inquiry.isRead ? 'text-charcoal/55' : 'text-gold-dark'}>
-                        {inquiry.isRead ? 'Read' : 'Unread'}
-                      </span>
-                    </div>
-                  </div>
-                  <time className="text-xs text-charcoal/55" dateTime={inquiry.createdAt.toISOString()}>
-                    {inquiry.createdAt.toLocaleString('en-IN')}
-                  </time>
-                </div>
-                <p className="text-sm font-medium text-gold-dark">{inquiry.subject}</p>
-                <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-charcoal/80">{inquiry.message}</p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="p-6 text-sm text-charcoal/70">No inquiries have been received yet.</p>
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+      {/* Header */}
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="font-fraunces text-3xl text-charcoal">Customer Inquiries</h1>
+          <p className="mt-1 text-sm text-charcoal/60">
+            Messages received via the Contact Us form
+          </p>
+        </div>
+        {unread > 0 && (
+          <span className="rounded-full bg-gold/20 px-4 py-1.5 text-sm font-semibold text-gold-dark">
+            {unread} Unread
+          </span>
         )}
       </div>
-    </section>
+
+      {inquiries.length === 0 ? (
+        <div className="rounded-2xl border border-gold/15 bg-white p-12 text-center text-charcoal/50">
+          No customer messages yet.
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {inquiries.map((inq) => {
+            const id = inq._id.toString();
+            const date = new Date(inq.createdAt).toLocaleString('en-IN', {
+              day: '2-digit', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit',
+            });
+
+            return (
+              <div
+                key={id}
+                className={`rounded-2xl border bg-white p-6 shadow-sm ${
+                  inq.read ? 'border-gold/10' : 'border-gold/40 ring-1 ring-gold/20'
+                }`}
+              >
+                {/* Top row */}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-charcoal">{inq.name}</p>
+                    <a
+                      href={`mailto:${inq.email}`}
+                      className="text-sm text-gold-dark underline underline-offset-2 hover:text-gold"
+                    >
+                      {inq.email}
+                    </a>
+                    {inq.phone && (
+                      <p className="mt-0.5 text-xs text-charcoal/60">📞 {inq.phone}</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="rounded-full bg-ivory px-3 py-0.5 text-xs font-medium text-charcoal/70 border border-gold/15">
+                      {inq.subject}
+                    </span>
+                    <span className="text-xs text-charcoal/40">{date}</span>
+                    {!inq.read && (
+                      <span className="rounded-full bg-gold text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
+                        New
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Message body */}
+                <p className="mt-4 whitespace-pre-wrap rounded-xl bg-ivory/60 p-4 text-sm leading-relaxed text-charcoal/80">
+                  {inq.message}
+                </p>
+
+                {/* Action buttons */}
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <a
+                    href={`mailto:${inq.email}?subject=Re: ${encodeURIComponent(inq.subject)}`}
+                    className="rounded-full bg-gold px-4 py-1.5 text-xs font-semibold text-white hover:bg-gold-dark"
+                  >
+                    ✉️ Reply via Email
+                  </a>
+                  {inq.phone && (
+                    <a
+                      href={`https://wa.me/${inq.phone.replace(/\D/g, '')}?text=Hello%20${encodeURIComponent(inq.name)},%20thank%20you%20for%20contacting%20Nandini%20Jewellers!`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                    >
+                      💬 WhatsApp
+                    </a>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
