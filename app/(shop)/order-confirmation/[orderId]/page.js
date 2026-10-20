@@ -20,14 +20,15 @@ function formatPrice(value) {
 }
 
 export default async function OrderConfirmationPage({ params }) {
+  const { orderId } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    redirect(`/login?redirect=/order-confirmation/${params.orderId}`);
+    redirect(`/login?redirect=/order-confirmation/${orderId}`);
   }
-  if (!mongoose.isValidObjectId(params.orderId)) notFound();
+  if (!mongoose.isValidObjectId(orderId)) notFound();
 
   await connectToDatabase();
-  const order = await Order.findById(params.orderId).lean();
+  const order = await Order.findById(orderId).lean();
   if (!order) notFound();
 
   const currentUser = await User.findById(session.user.id).select('role').lean();
@@ -61,10 +62,11 @@ export default async function OrderConfirmationPage({ params }) {
                 <p className="font-semibold text-charcoal">Items</p>
                 <ul className="mt-3 space-y-3">
                   {order.items.map((item) => (
-                    <li key={item.product.toString()} className="flex items-center gap-3">
+                    <li key={`${item.product}-${item.size ?? ''}`} className="flex items-center gap-3">
                       <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} sizes="64px" className="h-16 w-16 rounded-[1rem] object-cover" />
                       <div className="flex-1">
                         <p className="font-semibold text-charcoal">{item.name}</p>
+                        {item.size ? <p className="text-sm text-charcoal/70">Size: {item.size}</p> : null}
                         <p className="text-sm text-charcoal/70">{item.quantity} × ₹{item.price.toLocaleString('en-IN')}</p>
                       </div>
                       <p className="font-semibold text-charcoal">₹{(item.price * item.quantity).toLocaleString('en-IN')}</p>

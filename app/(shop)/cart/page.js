@@ -44,13 +44,14 @@ export default function CartPage() {
 
           <div className="mt-8 space-y-4">
             {items.map((item) => (
-              <div key={item.productId} className="grid gap-4 rounded-[1.25rem] border border-gold/15 bg-ivory/70 p-4 sm:grid-cols-[140px_1fr_180px]">
+              <div key={`${item.productId}-${item.size ?? ''}`} className="grid gap-4 rounded-[1.25rem] border border-gold/15 bg-ivory/70 p-4 sm:grid-cols-[140px_1fr_180px]">
                 <div className="overflow-hidden rounded-[1.25rem] bg-white">
                   <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={160} height={160} sizes="160px" className="h-full w-full object-cover" />
                 </div>
                 <div className="space-y-3">
                   <div>
                     <h2 className="font-semibold text-charcoal">{item.name}</h2>
+                    {item.size ? <p className="text-sm text-charcoal/70">Size: {item.size}</p> : null}
                     <p className="text-sm text-charcoal/70">₹{item.price.toLocaleString('en-IN')}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
@@ -58,7 +59,7 @@ export default function CartPage() {
                     <div className="flex items-center gap-2 rounded-full border border-gold/15 bg-white px-2">
                       <button
                         type="button"
-                        onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.productId, item.size ?? null, item.quantity - 1)}
                         className="h-11 w-11 rounded-full text-lg font-semibold text-charcoal transition hover:bg-gold/10"
                         aria-label={`Decrease quantity for ${item.name}`}
                       >
@@ -67,7 +68,7 @@ export default function CartPage() {
                       <span className="w-10 text-center text-sm font-semibold text-charcoal">{item.quantity}</span>
                       <button
                         type="button"
-                        onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.productId, item.size ?? null, item.quantity + 1)}
                         disabled={item.quantity >= 10}
                         className="h-11 w-11 rounded-full text-lg font-semibold text-charcoal transition hover:bg-gold/10"
                         aria-label={`Increase quantity for ${item.name}`}
@@ -82,7 +83,7 @@ export default function CartPage() {
                   <p className="mt-1 text-lg font-semibold text-charcoal">{formatPrice(item.price * item.quantity)}</p>
                   <button
                     type="button"
-                    onClick={() => removeFromCart(item.productId)}
+                    onClick={() => removeFromCart(item.productId, item.size ?? null)}
                     className="mt-3 inline-flex min-h-11 min-w-11 items-center justify-end text-sm font-semibold text-maroon transition hover:text-maroon/80"
                   >
                     Remove

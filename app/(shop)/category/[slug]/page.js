@@ -155,7 +155,7 @@ function FilterPanel({ idPrefix, categorySlug, normalizedFilters, allMaterials, 
 }
 
 export async function generateMetadata({ params }) {
-  const categorySlug = params?.slug;
+  const { slug: categorySlug } = await params;
   const category = await resolveCategory(categorySlug);
   if (!category) notFound();
 
@@ -167,8 +167,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function CategoryPage({ params, searchParams }) {
-  const categorySlug = params?.slug;
-  const normalizedFilters = normalizeSearchParams(searchParams);
+  const { slug: categorySlug } = await params;
+  const normalizedFilters = normalizeSearchParams(await searchParams);
 
   await connectToDatabase();
 

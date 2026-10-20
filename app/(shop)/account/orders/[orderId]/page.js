@@ -16,14 +16,15 @@ function formatPrice(value) {
 }
 
 export default async function AccountOrderPage({ params }) {
+  const { orderId } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    redirect(`/login?redirect=/account/orders/${params.orderId}`);
+    redirect(`/login?redirect=/account/orders/${orderId}`);
   }
-  if (!mongoose.isValidObjectId(params.orderId)) notFound();
+  if (!mongoose.isValidObjectId(orderId)) notFound();
 
   await connectToDatabase();
-  const order = await Order.findById(params.orderId).lean();
+  const order = await Order.findById(orderId).lean();
   if (!order) notFound();
 
   const currentUser = await User.findById(session.user.id).select('role').lean();
@@ -75,6 +76,7 @@ export default async function AccountOrderPage({ params }) {
                 <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={64} height={64} sizes="64px" className="h-16 w-16 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-charcoal">{item.name}</p>
+                  {item.size ? <p className="mt-1 text-sm text-charcoal/70">Size: {item.size}</p> : null}
                   <p className="mt-1 text-sm text-charcoal/70">Qty: {item.quantity}</p>
                 </div>
                 <p className="text-sm font-semibold text-charcoal">{formatPrice(item.price * item.quantity)}</p>

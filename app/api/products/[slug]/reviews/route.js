@@ -9,6 +9,7 @@ import { validateJsonRequest } from '@/lib/validateRequest';
 import Product from '@/models/Product';
 
 export async function POST(request, { params }) {
+  const { slug } = await params;
   const rateLimitResponse = await applyRateLimit(request, { route: 'product-review', limit: 10, windowMs: 60 * 60 * 1000 });
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -32,7 +33,7 @@ export async function POST(request, { params }) {
     };
 
     const product = await Product.findOneAndUpdate(
-      { slug: params?.slug },
+      { slug },
       [
         {
           $set: {

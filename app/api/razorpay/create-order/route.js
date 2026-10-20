@@ -6,6 +6,7 @@ import { applyRateLimit } from '@/lib/rateLimit';
 import { checkoutSchema } from '@/lib/schemas';
 import { validateJsonRequest } from '@/lib/validateRequest';
 import { CheckoutCartError, getCheckoutPricing } from '@/lib/checkoutPricing';
+import Order from '@/models/Order';
 
 /**
  * Production setup:
@@ -16,7 +17,7 @@ import { CheckoutCartError, getCheckoutPricing } from '@/lib/checkoutPricing';
  */
 
 export async function POST(request) {
-  const rateLimitResponse = await applyRateLimit(request, { route: 'razorpay-create-order', limit: 10, windowMs: 10 * 60 * 1000 });
+  const rateLimitResponse = await applyRateLimit(request, { route: 'razorpay-create-order', limit: 10, windowMs: 10 * 60 * 1000, failOpen: true });
   if (rateLimitResponse) return rateLimitResponse;
 
   const session = await getServerSession(authOptions);
@@ -44,6 +45,23 @@ export async function POST(request) {
       receipt: `checkout_${Date.now()}`,
       payment_capture: 1,
       notes: { userId: session.user.id },
+    });
+
+    await Order.create({
+      user: session.user.id,
+      razorpayOrderId: order.id,
+      items: pricing.items.map(({ product, name, image, price, quantity, size }) => ({
+        product,
+        name,
+        image,
+        price,
+        quantity,
+        ...(size ? { size } : {}),
+      })),
+      totalAmount: pricing.total,
+      orderStatus: 'pending',
+      paymentStatus: 'pending',
+      needsReview: false,
     });
 
     return Response.json({

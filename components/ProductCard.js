@@ -33,10 +33,12 @@ export default function ProductCard({ product }) {
           </div>
           <AddToCartButton
             productId={String(product._id)}
+            slug={String(product.slug)}
             name={String(product.name || '')}
             image={imageUrl}
             price={Number(hasDiscount ? product.discountPrice : product.price)}
             stock={Number(product.stock || 0)}
+            sizes={product.sizes || []}
           />
         </div>
       </div>

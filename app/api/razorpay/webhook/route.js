@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import connectToDatabase from '@/lib/mongodb';
 import Order from '@/models/Order';
+import { finalizeOrderPayment } from '@/lib/orderFinalize';
 
 function isValidWebhookSignature(body, signature, secret) {
   if (typeof signature !== 'string' || !/^[a-f0-9]{64}$/i.test(signature)) return false;
@@ -30,10 +31,17 @@ export async function POST(request) {
 
     await connectToDatabase();
     if (event.event === 'payment.captured') {
-      await Order.updateOne(
-        { razorpayOrderId: payment.order_id },
-        { $set: { paymentStatus: 'paid', paymentId: payment.id } }
-      );
+      const order = await Order.findOne({ razorpayOrderId: payment.order_id });
+      if (!order) {
+        console.warn('Webhook: Order not found for razorpayOrderId', payment.order_id);
+        return Response.json({ received: true });
+      }
+
+      await finalizeOrderPayment({
+        order,
+        paymentId: payment.id,
+        paidAmountPaise: payment.amount,
+      });
     } else {
       await Order.updateOne(
         { razorpayOrderId: payment.order_id, paymentStatus: { $ne: 'paid' } },

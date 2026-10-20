@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function ContactForm() {
   const [form, setForm] = useState({
@@ -13,6 +13,7 @@ export default function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const submittingRef = useRef(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,6 +22,8 @@ export default function ContactForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setLoading(true);
     setError('');
 
@@ -31,9 +34,20 @@ export default function ContactForm() {
         body: JSON.stringify(form),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Unable to submit inquiry. Please try again.');
+      }
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Too many inquiries have been sent from your connection. Please wait a little while and try again.');
+        }
         throw new Error(data?.message || 'Failed to submit inquiry.');
+      }
+      if (data?.success !== true) {
+        throw new Error('Unable to submit inquiry. Please try again.');
       }
 
       setSubmitted(true);
@@ -47,6 +61,7 @@ export default function ContactForm() {
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };
@@ -75,7 +90,7 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 rounded-[1.75rem] border border-gold/15 bg-white p-6 shadow-soft sm:p-10">
+    <form onSubmit={handleSubmit} className="space-y-6 rounded-[1.75rem] border border-gold/15 bg-white p-5 sm:p-10 shadow-soft min-w-0">
       {error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
@@ -84,8 +99,9 @@ export default function ContactForm() {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-charcoal">Your Full Name *</label>
+          <label htmlFor="contact-name" className="block text-sm font-medium text-charcoal">Your Full Name *</label>
           <input
+            id="contact-name"
             type="text"
             name="name"
             required
@@ -97,8 +113,9 @@ export default function ContactForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-charcoal">Email Address *</label>
+          <label htmlFor="contact-email" className="block text-sm font-medium text-charcoal">Email Address *</label>
           <input
+            id="contact-email"
             type="email"
             name="email"
             required
@@ -112,8 +129,9 @@ export default function ContactForm() {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-charcoal">Phone / WhatsApp Number</label>
+          <label htmlFor="contact-phone" className="block text-sm font-medium text-charcoal">Phone / WhatsApp Number</label>
           <input
+            id="contact-phone"
             type="tel"
             name="phone"
             value={form.phone}
@@ -124,8 +142,9 @@ export default function ContactForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-charcoal">Topic of Inquiry</label>
+          <label htmlFor="contact-subject" className="block text-sm font-medium text-charcoal">Topic of Inquiry</label>
           <select
+            id="contact-subject"
             name="subject"
             value={form.subject}
             onChange={handleChange}
@@ -141,8 +160,9 @@ export default function ContactForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-charcoal">Your Message *</label>
+        <label htmlFor="contact-message" className="block text-sm font-medium text-charcoal">Your Message *</label>
         <textarea
+          id="contact-message"
           name="message"
           rows={5}
           required

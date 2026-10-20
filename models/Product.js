@@ -1,6 +1,14 @@
 import mongoose from 'mongoose';
 import { PRODUCT_CATEGORIES, PRODUCT_TYPES } from '../lib/productOptions.js';
 
+const sizeStockSchema = new mongoose.Schema(
+  {
+    size: { type: String, required: true },
+    stock: { type: Number, default: 0, min: 0 },
+  },
+  { _id: false }
+);
+
 const reviewSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -32,6 +40,7 @@ const productSchema = new mongoose.Schema(
     discountPrice: { type: Number },
     images: [{ type: String }],
     stock: { type: Number, default: 0 },
+    sizes: [sizeStockSchema],
     isFeatured: { type: Boolean, default: false },
     isNewArrival: { type: Boolean, default: false },
     rating: { type: Number, default: 0 },
@@ -42,6 +51,11 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+productSchema.pre('save', function syncSizeStock(next) {
+  if (this.sizes?.length) this.stock = this.sizes.reduce((total, size) => total + Number(size.stock || 0), 0);
+  next();
+});
 
 productSchema.index({ name: 'text', description: 'text', category: 'text' });
 

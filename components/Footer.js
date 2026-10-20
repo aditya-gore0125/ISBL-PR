@@ -9,30 +9,20 @@ function SocialLinks() {
   const links = [
     {
       label: 'Instagram',
-      href: 'https://instagram.com/your-handle',
+      href: 'https://www.instagram.com/nandini_jewellers_official',
       icon: <><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="18" cy="6" r=".8" fill="currentColor" stroke="none" /></>,
     },
     {
-      label: 'Facebook',
-      href: 'https://facebook.com/your-page',
-      icon: <path d="M14 8h3V4h-3a5 5 0 0 0-5 5v3H6v4h3v4h4v-4h3l1-4h-4V9a1 1 0 0 1 1-1z" />,
-    },
-    {
       label: 'WhatsApp',
-      href: 'https://wa.me/910000000000',
+      href: 'https://wa.me/919322006509',
       icon: <><path d="M20 11.5a8.3 8.3 0 0 1-12.3 7.2L4 20l1.3-3.5A8.3 8.3 0 1 1 20 11.5Z" /><path d="M9 8.5c.2-.5.5-.5.8-.5h.4c.2 0 .4.1.5.4l.7 1.7c.1.2.1.4-.1.6l-.5.6c-.2.2-.2.4-.1.6.4.7 1 1.3 1.7 1.7.2.1.4.1.6-.1l.6-.6c.2-.2.4-.2.7-.1l1.6.8c.3.1.4.3.4.5 0 .3-.2 1-.6 1.3-.4.4-1 .6-1.7.5-1.1-.2-2.4-.8-3.7-2-1.1-1-1.8-2.2-2-3.2-.2-.9.2-1.7.7-2.2Z" /></>,
-    },
-    {
-      label: 'X',
-      href: 'https://x.com/your-handle',
-      icon: <path d="M5 4h4.2l9.8 16h-4.2L5 4Zm0 16 6.2-7.1M12.8 11.1 19 4" />,
     },
   ];
 
   return (
     <nav aria-label="Social media" className="mt-5 flex flex-wrap gap-2">
       {links.map(({ label, href, icon }) => (
-        <a key={label} href={href} aria-label={label} target="_blank" rel="noreferrer" className="grid h-11 w-11 place-items-center rounded-full border border-gold/20 bg-white text-charcoal transition hover:border-gold hover:text-gold-dark">
+        <a key={label} href={href} aria-label={label} target="_blank" rel="noopener noreferrer" className="grid h-11 w-11 place-items-center rounded-full border border-gold/20 bg-white text-charcoal transition hover:border-gold hover:text-gold-dark">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">{icon}</svg>
         </a>
       ))}
@@ -80,6 +70,12 @@ export default function Footer() {
             <p className="mt-3 max-w-md text-sm leading-7 text-charcoal/75">
               Designed for modern rituals, with luminous gold accents and heirloom-inspired pieces that feel effortless and elevated.
             </p>
+            <address className="mt-3 max-w-md text-sm leading-7 text-charcoal/75 not-italic">
+              Nandini Jewellers<br />
+              Manohar Sankul,<br />
+              Kanade Maruti Lane, Near Dahipul,<br />
+              Nashik, Maharashtra, India.
+            </address>
             <SocialLinks />
           </div>
 

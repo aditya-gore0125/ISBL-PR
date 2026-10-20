@@ -8,7 +8,7 @@ import { createOrderSchema } from '@/lib/schemas';
 import { validateJsonRequest } from '@/lib/validateRequest';
 import { CheckoutCartError, getCheckoutPricing } from '@/lib/checkoutPricing';
 import Order from '@/models/Order';
-import Product from '@/models/Product';
+import { finalizeOrderPayment } from '@/lib/orderFinalize';
 
 function hasValidSignature(orderId, paymentId, signature, secret) {
   if (typeof signature !== 'string' || !/^[a-f0-9]{64}$/i.test(signature)) return false;
@@ -31,7 +31,7 @@ function normalizeAddress(address) {
 }
 
 export async function POST(request) {
-  const rateLimitResponse = await applyRateLimit(request, { route: 'orders-create', limit: 10, windowMs: 10 * 60 * 1000 });
+  const rateLimitResponse = await applyRateLimit(request, { route: 'orders-create', limit: 10, windowMs: 10 * 60 * 1000, failOpen: true });
   if (rateLimitResponse) return rateLimitResponse;
 
   const session = await getServerSession(authOptions);
@@ -68,71 +68,79 @@ export async function POST(request) {
         return Response.json({ message: 'Payment order belongs to another user.' }, { status: 403 });
       }
       if (Number(razorpayOrder.amount) !== Math.round(Number(existingOrder.totalAmount) * 100)) {
+        await Order.updateOne({ _id: existingOrder._id }, { $set: { needsReview: true } });
         return Response.json({ message: 'Payment order amount does not match the saved order.' }, { status: 400 });
       }
-      return Response.json({ order: existingOrder }, { status: 200 });
+
+      const result = await finalizeOrderPayment({
+        order: existingOrder,
+        paymentId,
+        paidAmountPaise: razorpayOrder.amount,
+        shippingAddress,
+      });
+
+      if (!result.success && result.reason === 'amount_mismatch') {
+        return Response.json({ message: 'Payment order amount does not match the saved order.' }, { status: 400 });
+      }
+
+      return Response.json(
+        { order: result.order || existingOrder },
+        { status: result.alreadyFinalized ? 200 : 201 }
+      );
     }
 
+    // Fallback if pending order wasn't created at /api/razorpay/create-order
     const pricing = await getCheckoutPricing(body.items);
     if (Number(razorpayOrder.amount) !== pricing.totalPaise) {
       return Response.json({ message: 'Payment order does not match this checkout.' }, { status: 400 });
     }
 
-    let order;
+    let newOrder;
     try {
-      order = await Order.create({
+      newOrder = await Order.create({
         user: session.user.id,
         razorpayOrderId: orderId,
-        items: pricing.items.map(({ product, name, image, price, quantity }) => ({
+        items: pricing.items.map(({ product, name, image, price, quantity, size }) => ({
           product,
           name,
           image,
           price,
           quantity,
+          ...(size ? { size } : {}),
         })),
         shippingAddress,
-        paymentId,
-        paymentStatus: 'paid',
-        orderStatus: 'pending',
-        needsReview: true,
         totalAmount: pricing.total,
+        orderStatus: 'pending',
+        paymentStatus: 'pending',
       });
     } catch (error) {
       if (error.code === 11000) {
         const duplicate = await Order.findOne({ razorpayOrderId: orderId });
         if (duplicate?.user.toString() === session.user.id) {
-          return Response.json({ order: duplicate }, { status: 200 });
+          const result = await finalizeOrderPayment({
+            order: duplicate,
+            paymentId,
+            paidAmountPaise: razorpayOrder.amount,
+            shippingAddress,
+          });
+          return Response.json({ order: result.order || duplicate }, { status: 200 });
         }
       }
       throw error;
     }
 
-    let stockUpdated = true;
-    try {
-      for (const item of pricing.items) {
-        const result = await Product.updateOne(
-          { _id: item.product, stock: { $gte: item.quantity } },
-          { $inc: { stock: -item.quantity } }
-        );
-        if (result.modifiedCount !== 1) {
-          stockUpdated = false;
-          break;
-        }
-      }
-    } catch (error) {
-      console.error('Order stock decrement error', error);
-      stockUpdated = false;
+    const result = await finalizeOrderPayment({
+      order: newOrder,
+      paymentId,
+      paidAmountPaise: razorpayOrder.amount,
+      shippingAddress,
+    });
+
+    if (!result.success && result.reason === 'amount_mismatch') {
+      return Response.json({ message: 'Payment order amount does not match the saved order.' }, { status: 400 });
     }
 
-    if (stockUpdated) {
-      order = await Order.findByIdAndUpdate(
-        order._id,
-        { $set: { orderStatus: 'confirmed', needsReview: false } },
-        { new: true }
-      );
-    }
-
-    return Response.json({ order }, { status: 201 });
+    return Response.json({ order: result.order || newOrder }, { status: 201 });
   } catch (error) {
     if (error instanceof CheckoutCartError) {
       return Response.json({ message: error.message }, { status: error.status });
