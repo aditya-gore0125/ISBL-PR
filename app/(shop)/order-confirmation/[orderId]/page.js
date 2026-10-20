@@ -34,13 +34,20 @@ export default async function OrderConfirmationPage({ params }) {
   const currentUser = await User.findById(session.user.id).select('role').lean();
   const isOwner = order.user.toString() === session.user.id;
   if (!isOwner && currentUser?.role !== 'admin') notFound();
+  const paymentMessage = order.paymentStatus === 'paid'
+    ? order.needsReview
+      ? 'Your payment is confirmed. We are reviewing your order and will update its status shortly.'
+      : 'Your payment is confirmed and we’re getting your package ready.'
+    : order.paymentStatus === 'failed'
+      ? 'Payment failed. This order is not confirmed.'
+      : 'Payment is pending. This order will be confirmed after payment is verified.';
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="rounded-[1.5rem] border border-gold/15 bg-white/90 p-8 shadow-soft">
         <div className="space-y-4 text-center">
-          <h1 className="font-fraunces text-4xl text-charcoal">Thank you for your order!</h1>
-          <p className="text-sm text-charcoal/70">{order.needsReview ? 'Your payment is confirmed. We are reviewing your order and will update its status shortly.' : 'Your payment is confirmed and we’re getting your package ready.'}</p>
+          <h1 className="font-fraunces text-4xl text-charcoal">{order.paymentStatus === 'paid' ? 'Thank you for your order!' : 'Payment not confirmed'}</h1>
+          <p className="text-sm text-charcoal/70">{paymentMessage}</p>
           <p className="text-sm text-charcoal/75">Order number: <span className="font-semibold text-charcoal">{formatOrderId(order._id)}</span></p>
         </div>
 

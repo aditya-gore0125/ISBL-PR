@@ -433,6 +433,9 @@ export default function AccountPage() {
                   <div>
                     <p className="text-sm text-charcoal/60">{formatOrderId(order._id)}</p>
                     <p className="mt-1 text-lg font-semibold text-charcoal">{formatPrice(order.totalAmount)}</p>
+                    <p className="mt-1 text-xs text-charcoal/70">
+                      {order.paymentStatus === 'pending' ? 'Payment pending — order not confirmed' : `Payment ${order.paymentStatus}`}
+                    </p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusClasses(order.orderStatus)}`}>
