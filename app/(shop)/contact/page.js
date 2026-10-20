@@ -13,7 +13,7 @@ export default function ContactPage() {
       {/* Header Banner */}
       <section className="border-b border-gold/15 bg-gradient-to-br from-white via-ivory to-blush/25 py-14 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-gold">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] sm:tracking-[0.35em] text-gold">
             Customer Care & Concierge
           </p>
           <h1 className="mt-3 font-fraunces text-4xl text-charcoal sm:text-5xl lg:text-6xl">
@@ -37,7 +37,7 @@ export default function ContactPage() {
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {/* Card 1: Phone & WhatsApp */}
-            <div className="flex flex-col justify-between rounded-[1.75rem] border border-gold/15 bg-white p-7 shadow-soft transition hover:-translate-y-1 hover:shadow-md">
+            <div className="flex flex-col justify-between min-w-0 rounded-[1.75rem] border border-gold/15 bg-white p-6 sm:p-7 shadow-soft transition hover:-translate-y-1 hover:shadow-md">
               <div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gold/10 text-gold-dark text-xl font-bold">
                   📞
@@ -70,7 +70,7 @@ export default function ContactPage() {
             </div>
 
             {/* Card 2: Email Concierge */}
-            <div className="flex flex-col justify-between rounded-[1.75rem] border border-gold/15 bg-white p-7 shadow-soft transition hover:-translate-y-1 hover:shadow-md">
+            <div className="flex flex-col justify-between min-w-0 rounded-[1.75rem] border border-gold/15 bg-white p-6 sm:p-7 shadow-soft transition hover:-translate-y-1 hover:shadow-md">
               <div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gold/10 text-gold-dark text-xl font-bold">
                   ✉️
@@ -79,29 +79,26 @@ export default function ContactPage() {
                 <p className="mt-2 text-sm text-charcoal/70 leading-relaxed">
                   For order inquiries, bulk corporate gifting, or media, write to our concierge team.
                 </p>
+                {/* // TODO: restore email block once domain email exists */}
                 <div className="mt-4">
-                  <a
-                    href="mailto:concierge@nandinijewellers.com"
-                    className="text-base font-semibold text-charcoal underline decoration-gold/50 underline-offset-4 hover:text-gold-dark"
-                  >
-                    concierge@nandinijewellers.com
-                  </a>
-                  <p className="mt-1 text-xs text-charcoal/50">Response within 24 business hours</p>
+                  <p className="text-xs text-charcoal/60 leading-relaxed">
+                    Official domain email launching soon. For immediate inquiries, please reach out via WhatsApp or submit a message below.
+                  </p>
                 </div>
               </div>
               <div className="mt-6 pt-4 border-t border-gold/10">
                 <a
-                  href="mailto:concierge@nandinijewellers.com"
+                  href="#contact-form"
                   className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gold-dark hover:text-gold"
                 >
-                  <span>Compose Email</span>
-                  <span>→</span>
+                  <span>Send a Message</span>
+                  <span>↓</span>
                 </a>
               </div>
             </div>
 
             {/* Card 3: Showroom & Hours */}
-            <div className="flex flex-col justify-between rounded-[1.75rem] border border-gold/15 bg-white p-7 shadow-soft transition hover:-translate-y-1 hover:shadow-md sm:col-span-2 lg:col-span-1">
+            <div className="flex flex-col justify-between min-w-0 rounded-[1.75rem] border border-gold/15 bg-white p-6 sm:p-7 shadow-soft transition hover:-translate-y-1 hover:shadow-md sm:col-span-2 lg:col-span-1">
               <div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gold/10 text-gold-dark text-xl font-bold">
                   🏛
@@ -125,7 +122,7 @@ export default function ContactPage() {
         </section>
 
         {/* Tier 2: Dedicated "Send Us a Message" + Experience Highlights */}
-        <section>
+        <section id="contact-form">
           <div className="grid gap-12 lg:grid-cols-[1.3fr_0.9fr] lg:items-start">
             {/* Left: Spacious Message Form */}
             <div>
@@ -142,7 +139,7 @@ export default function ContactPage() {
 
             {/* Right: Showroom Experience & Concierge Guarantees */}
             <div className="space-y-6 lg:pt-8">
-              <div className="rounded-[1.75rem] border border-gold/20 bg-gradient-to-br from-ivory via-white to-blush/20 p-8 shadow-soft">
+              <div className="rounded-[1.75rem] border border-gold/20 bg-gradient-to-br from-ivory via-white to-blush/20 p-6 sm:p-8 shadow-soft">
                 <h3 className="font-fraunces text-2xl text-charcoal">The Nandini Experience</h3>
                 <p className="mt-3 text-sm leading-relaxed text-charcoal/75">
                   Every interaction is guided by our dedication to genuine hospitality, honest advice, and exceptional artistry.
@@ -189,14 +186,14 @@ export default function ContactPage() {
 
               {/* Quick Call Box */}
               <div className="rounded-[1.5rem] border border-gold/15 bg-white p-6 shadow-soft">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <p className="text-xs uppercase tracking-wider text-charcoal/60">Need Urgent Assistance?</p>
                     <p className="mt-1 font-fraunces text-lg text-charcoal">Speak with a specialist right away</p>
                   </div>
                   <a
                     href="tel:+919322006509"
-                    className="rounded-full bg-gold px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-gold-dark"
+                    className="self-start sm:self-auto rounded-full bg-gold px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-gold-dark"
                   >
                     Call Now
                   </a>

@@ -15,7 +15,7 @@ const questions = [
   },
   {
     question: 'How do I contact customer care?',
-    answer: 'Use the email address or phone number on our Contact page. Those details are placeholders and need to be replaced before launch.',
+    answer: 'Reach out to our concierge desk at +91 93220 06509 or via WhatsApp from our Contact page.',
   },
 ];
 

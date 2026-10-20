@@ -20,14 +20,15 @@ function formatPrice(value) {
 }
 
 export default async function OrderConfirmationPage({ params }) {
+  const { orderId } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    redirect(`/login?redirect=/order-confirmation/${params.orderId}`);
+    redirect(`/login?redirect=/order-confirmation/${orderId}`);
   }
-  if (!mongoose.isValidObjectId(params.orderId)) notFound();
+  if (!mongoose.isValidObjectId(orderId)) notFound();
 
   await connectToDatabase();
-  const order = await Order.findById(params.orderId).lean();
+  const order = await Order.findById(orderId).lean();
   if (!order) notFound();
 
   const currentUser = await User.findById(session.user.id).select('role').lean();

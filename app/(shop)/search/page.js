@@ -14,7 +14,7 @@ function normalizeQuery(query) {
 }
 
 export default async function SearchPage({ searchParams }) {
-  const query = normalizeQuery(searchParams?.q);
+  const query = normalizeQuery((await searchParams)?.q);
 
   await connectToDatabase();
 

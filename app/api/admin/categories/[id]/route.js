@@ -12,6 +12,7 @@ function invalidId(error) {
 }
 
 export async function PUT(request, { params }) {
+  const { id } = await params;
   const auth = await requireAdmin();
   if (auth.response) return auth.response;
 
@@ -31,7 +32,7 @@ export async function PUT(request, { params }) {
     if (payload.type === undefined) delete payload.type;
     if ('displayOrder' in payload && !Number.isFinite(payload.displayOrder)) return NextResponse.json({ message: 'Display order must be a number.' }, { status: 400 });
     await connectToDatabase();
-    const category = await Category.findByIdAndUpdate(params.id, payload, { new: true, runValidators: true }).lean();
+    const category = await Category.findByIdAndUpdate(id, payload, { new: true, runValidators: true }).lean();
     if (!category) return NextResponse.json({ message: 'Category not found.' }, { status: 404 });
     return NextResponse.json({ category });
   } catch (error) {
@@ -43,18 +44,19 @@ export async function PUT(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
+  const { id } = await params;
   const auth = await requireAdmin();
   if (auth.response) return auth.response;
 
   try {
     await connectToDatabase();
-    const category = await Category.findById(params.id).lean();
+    const category = await Category.findById(id).lean();
     if (!category) return NextResponse.json({ message: 'Category not found.' }, { status: 404 });
     const productCount = await Product.countDocuments({ category: category.name, type: category.type });
     if (productCount) {
       return NextResponse.json({ message: 'Move or delete this category\'s products before deleting it.' }, { status: 409 });
     }
-    await Category.findByIdAndDelete(params.id);
+    await Category.findByIdAndDelete(id);
     return NextResponse.json({ message: 'Category deleted.' });
   } catch (error) {
     if (invalidId(error)) return NextResponse.json({ message: 'Invalid category id.' }, { status: 400 });

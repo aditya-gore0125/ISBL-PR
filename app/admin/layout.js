@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions } from '@/lib/auth';
+import { requireAdmin } from '@/lib/requireAdmin';
 
 export const metadata = {
   title: 'Admin Dashboard',
@@ -14,12 +13,11 @@ const navItems = [
   { href: '/admin/orders', label: 'Orders' },
   { href: '/admin/inquiries', label: 'Inquiries' },
   { href: '/admin/categories', label: 'Categories' },
-  { href: '/admin/inquiries', label: 'Inquiries' },
 ];
 
 export default async function AdminLayout({ children }) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user?.role !== 'admin') redirect('/login?redirect=/admin');
+  const { response } = await requireAdmin();
+  if (response) redirect('/login?redirect=/admin');
 
   return (
     <div className="min-h-screen bg-ivory text-charcoal">

@@ -31,12 +31,13 @@ function invalidId(error) {
 }
 
 export async function GET(request, { params }) {
+  const { id } = await params;
   const auth = await requireAdmin();
   if (auth.response) return auth.response;
 
   try {
     await connectToDatabase();
-    const order = await Order.findById(params.id).populate('user', 'name email phone').lean();
+    const order = await Order.findById(id).populate('user', 'name email phone').lean();
     if (!order) return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
     return NextResponse.json({ order: serializeOrder(order) });
   } catch (error) {
@@ -47,6 +48,7 @@ export async function GET(request, { params }) {
 }
 
 export async function PUT(request, { params }) {
+  const { id } = await params;
   const auth = await requireAdmin();
   if (auth.response) return auth.response;
 
@@ -56,7 +58,7 @@ export async function PUT(request, { params }) {
     const { orderStatus } = body;
 
     await connectToDatabase();
-    const currentOrder = await Order.findById(params.id);
+    const currentOrder = await Order.findById(id);
     if (!currentOrder) return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
 
     const currentStatus = currentOrder.orderStatus || 'pending';
@@ -85,7 +87,7 @@ export async function PUT(request, { params }) {
         ...(shouldRestoreStock ? { stockRestored: true } : {}),
       },
     };
-    const updateFilter = { _id: params.id, orderStatus: currentStatus };
+    const updateFilter = { _id: id, orderStatus: currentStatus };
     if (shouldRestoreStock) updateFilter.stockRestored = { $ne: true };
 
     const session = await mongoose.startSession();

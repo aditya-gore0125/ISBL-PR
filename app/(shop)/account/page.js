@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import SafeImage from '@/components/SafeImage';
 import { formatOrderId } from '@/lib/utils';
 
@@ -72,6 +72,8 @@ export default function AccountPage() {
   const [profile, setProfile] = useState({ name: '', phone: '' });
   const [addresses, setAddresses] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [ordersError, setOrdersError] = useState('');
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [profileError, setProfileError] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [addressForm, setAddressForm] = useState(emptyAddress);
@@ -88,25 +90,50 @@ export default function AccountPage() {
     }
   }, [router, status]);
 
+  const fetchOrders = useCallback(async () => {
+    setOrdersLoading(true);
+    setOrdersError('');
+    try {
+      const ordersRes = await fetch('/api/orders/history');
+      if (!ordersRes.ok) {
+        let message = 'Unable to load order history.';
+        try {
+          const errData = await ordersRes.json();
+          if (errData?.message) message = errData.message;
+        } catch {
+          // ignore non-json error responses
+        }
+        throw new Error(`${message} (${ordersRes.status})`);
+      }
+      const ordersData = await ordersRes.json();
+      setOrders(ordersData.orders || []);
+    } catch (error) {
+      console.error('Load orders error', error);
+      setOrdersError(error.message || 'Unable to load orders.');
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const fetchAccountData = async () => {
       try {
-        const [accountRes, ordersRes] = await Promise.all([
-          fetch('/api/account'),
-          fetch('/api/orders/history'),
-        ]);
+        const accountRes = await fetch('/api/account');
+
+
+
 
         const accountData = await readJsonResponse(accountRes, 'Unable to load profile.');
-        const ordersData = await ordersRes.json();
+
 
         setProfile({
           name: accountData.user?.name || '',
           phone: accountData.user?.phone || '',
         });
         setAddresses(accountData.user?.addresses || []);
-        setOrders(ordersData.orders || []);
+
       } catch (error) {
         console.error('Load account error', error);
       } finally {
@@ -115,7 +142,8 @@ export default function AccountPage() {
     };
 
     fetchAccountData();
-  }, [isAuthenticated]);
+    fetchOrders();
+  }, [isAuthenticated, fetchOrders]);
 
   const canSaveProfile = useMemo(() => profile.name.trim().length >= 2, [profile.name]);
 
@@ -375,10 +403,30 @@ export default function AccountPage() {
       </div>
 
       <section id="orders" className="mt-10 rounded-[1.5rem] border border-gold/15 bg-white/90 p-6 shadow-soft">
-        <h2 className="font-fraunces text-2xl text-charcoal">Order history</h2>
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="font-fraunces text-2xl text-charcoal">Order history</h2>
+          {ordersLoading ? (
+            <span className="text-xs text-charcoal/60">Loading orders...</span>
+          ) : null}
+        </div>
 
         <div className="mt-6 space-y-4">
-          {orders.length ? (
+          {ordersError ? (
+            <div className="rounded-[1rem] border border-maroon/20 bg-maroon/5 p-5 text-sm text-maroon flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="font-medium">Failed to load order history</p>
+                <p className="mt-0.5 text-xs text-maroon/80">{ordersError}</p>
+              </div>
+              <button
+                type="button"
+                onClick={fetchOrders}
+                disabled={ordersLoading}
+                className="self-start sm:self-auto rounded-full bg-maroon px-4 py-2 text-xs font-semibold text-white transition hover:bg-maroon/90 disabled:opacity-50"
+              >
+                {ordersLoading ? 'Retrying...' : 'Retry'}
+              </button>
+            </div>
+          ) : orders.length ? (
             orders.map((order) => (
               <div key={order._id} className="rounded-[1.25rem] border border-gold/15 bg-ivory/70 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

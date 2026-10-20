@@ -6,6 +6,7 @@ import { applyRateLimit } from '@/lib/rateLimit';
 import { checkoutSchema } from '@/lib/schemas';
 import { validateJsonRequest } from '@/lib/validateRequest';
 import { CheckoutCartError, getCheckoutPricing } from '@/lib/checkoutPricing';
+import Order from '@/models/Order';
 
 /**
  * Production setup:
@@ -44,6 +45,23 @@ export async function POST(request) {
       receipt: `checkout_${Date.now()}`,
       payment_capture: 1,
       notes: { userId: session.user.id },
+    });
+
+    await Order.create({
+      user: session.user.id,
+      razorpayOrderId: order.id,
+      items: pricing.items.map(({ product, name, image, price, quantity, size }) => ({
+        product,
+        name,
+        image,
+        price,
+        quantity,
+        ...(size ? { size } : {}),
+      })),
+      totalAmount: pricing.total,
+      orderStatus: 'pending',
+      paymentStatus: 'pending',
+      needsReview: false,
     });
 
     return Response.json({
