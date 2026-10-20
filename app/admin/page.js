@@ -12,13 +12,14 @@ export default async function AdminDashboardPage() {
   await connectToDatabase();
 
   const [orderCount, productCount, revenueResults, statusResults, lowStockList, lowStockCount] = await Promise.all([
-    Order.countDocuments(),
+    Order.countDocuments({ paymentStatus: 'paid' }),
     Product.countDocuments(),
     Order.aggregate([
       { $match: { paymentStatus: 'paid' } },
       { $group: { _id: null, totalRevenue: { $sum: { $ifNull: ['$totalAmount', 0] } } } },
     ]),
     Order.aggregate([
+      { $match: { paymentStatus: 'paid' } },
       { $group: { _id: { $ifNull: ['$orderStatus', 'pending'] }, count: { $sum: 1 } } },
     ]),
     Product.find({ stock: { $lt: 5 } }).sort({ stock: 1, name: 1 }).limit(8).lean(),
