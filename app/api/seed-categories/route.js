@@ -1,4 +1,5 @@
 import connectToDatabase from '@/lib/mongodb';
+import { requireAdmin } from '@/lib/requireAdmin';
 import { CATEGORY_DEFS } from '@/lib/categoryMap';
 import Category from '@/models/Category';
 
@@ -9,9 +10,12 @@ const categoriesToSeed = CATEGORY_DEFS.map((category, displayOrder) => ({
 }));
 
 async function seed() {
-  if (process.env.NODE_ENV !== 'development') {
-    return new Response('Category seed route is only available in development.', { status: 403 });
+  if (process.env.NODE_ENV === 'production') {
+    return new Response(null, { status: 404 });
   }
+
+  const { response } = await requireAdmin();
+  if (response) return response;
 
   try {
     await connectToDatabase();

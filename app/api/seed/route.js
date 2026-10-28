@@ -1,4 +1,5 @@
 import connectToDatabase from '@/lib/mongodb';
+import { requireAdmin } from '@/lib/requireAdmin';
 import Product from '@/models/Product';
 
 const sampleProducts = [
@@ -761,9 +762,12 @@ const sampleProducts = [
 ];
 
 async function seed() {
-  if (process.env.NODE_ENV !== 'development') {
-    return new Response('Seed route is only available in development.', { status: 403 });
+  if (process.env.NODE_ENV === 'production') {
+    return new Response(null, { status: 404 });
   }
+
+  const { response } = await requireAdmin();
+  if (response) return response;
 
   try {
     await connectToDatabase();
