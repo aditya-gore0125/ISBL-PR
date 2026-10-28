@@ -35,7 +35,7 @@ const nextConfig = {
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://placehold.co https://*.razorpay.com",
       "connect-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com",
-      "frame-src https://checkout.razorpay.com https://api.razorpay.com https://*.razorpay.com",
+      "frame-src https://checkout.razorpay.com https://api.razorpay.com https://*.razorpay.com https://www.google.com",
     ].join('; ');
 
     return [{

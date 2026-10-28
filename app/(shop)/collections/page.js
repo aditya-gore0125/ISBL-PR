@@ -28,9 +28,9 @@ export default async function CollectionsPage() {
           <h2 className="font-fraunces text-2xl text-charcoal">{group}</h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {groupCategories.map((category) => (
-              <Link key={category.slug} href={`/category/${category.slug}`} className="group overflow-hidden rounded-xl border border-gold/15 bg-white transition hover:border-gold/40">
+              <Link key={category.slug} href={`/category/${category.slug}?type=${encodeURIComponent(group)}`} className="group overflow-hidden rounded-xl border border-gold/15 bg-white transition hover:border-gold/40">
                 <div className="aspect-[4/3] overflow-hidden bg-blush/20">
-                  <SafeImage src={category.image || '/hero-placeholder.svg'} alt={category.name} width={600} height={450} sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  <SafeImage src={category.image?.trim() || '/category-placeholder.svg'} alt={category.name} width={600} height={450} sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 </div>
                 <span className="flex min-h-12 items-center justify-between px-4 font-semibold text-charcoal">
                   {category.name}<span aria-hidden="true" className="text-gold">→</span>

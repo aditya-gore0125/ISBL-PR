@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
 
 function shouldSkipOptimization(src) {
@@ -13,6 +16,25 @@ function shouldSkipOptimization(src) {
   }
 }
 
-export default function SafeImage({ src, alt, unoptimized, ...props }) {
-  return <Image {...props} src={src} alt={alt} unoptimized={Boolean(unoptimized || shouldSkipOptimization(src))} />;
+export default function SafeImage({ src, alt, unoptimized, hideOnError = false, onError, ...props }) {
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError && hideOnError) {
+    return null;
+  }
+
+  return (
+    <Image
+      {...props}
+      src={src}
+      alt={alt}
+      unoptimized={Boolean(unoptimized || shouldSkipOptimization(src))}
+      onError={(event) => {
+        setHasError(true);
+        if (typeof onError === 'function') {
+          onError(event);
+        }
+      }}
+    />
+  );
 }

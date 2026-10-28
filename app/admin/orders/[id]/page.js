@@ -162,7 +162,7 @@ export default function AdminOrderDetailPage({ params }) {
               {order.items?.map((item) => (
                 <div key={`${item.product}-${item.size ?? ''}-${item.name}`} className="flex items-center justify-between rounded-[1rem] border border-gold/10 bg-ivory p-3">
                   <div className="flex items-center gap-3">
-                    <SafeImage src={item.image || '/hero-placeholder.svg'} alt={item.name} width={56} height={56} sizes="56px" className="h-14 w-14 rounded-lg object-cover" />
+                    <SafeImage src={item.image || '/category-placeholder.svg'} alt={item.name} width={56} height={56} sizes="56px" className="h-14 w-14 rounded-lg object-cover" />
                     <div>
                       <p className="text-sm font-semibold text-charcoal">{item.name}</p>
                       {item.size ? <p className="text-xs text-charcoal/60">Size: {item.size}</p> : null}

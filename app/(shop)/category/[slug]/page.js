@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import connectToDatabase from '@/lib/mongodb';
-import { getCategoryBySlug } from '@/lib/categoryMap';
+import { CATEGORY_DEFS, getCategoryBySlug } from '@/lib/categoryMap';
 import Category from '@/models/Category';
 import Product from '@/models/Product';
 import { notFound } from 'next/navigation';
@@ -69,8 +69,9 @@ function buildSort(sort) {
   }
 }
 
-function buildFiltersUrl(slug, filters, page = 1) {
+function buildFiltersUrl(slug, filters, page = 1, type = null) {
   const params = new URLSearchParams();
+  if (type) params.set('type', type);
   if (filters.sort && filters.sort !== 'featured') params.set('sort', filters.sort);
   if (filters.minPrice > 0) params.set('minPrice', String(filters.minPrice));
   if (filters.maxPrice > 0) params.set('maxPrice', String(filters.maxPrice));
@@ -81,19 +82,33 @@ function buildFiltersUrl(slug, filters, page = 1) {
   return queryString ? `/category/${slug}?${queryString}` : `/category/${slug}`;
 }
 
-async function resolveCategory(slug) {
+async function resolveCategory(slug, requestedType) {
   await connectToDatabase();
+  const validTypes = ['Ladies', 'Gents'];
+  const normalizedType = validTypes.includes(requestedType) ? requestedType : null;
+
   const [categoryDoc, categoryDefinition] = await Promise.all([
-    Category.findOne({ slug }).select('name type').lean(),
-    Promise.resolve(getCategoryBySlug(slug)),
+    normalizedType
+      ? Category.findOne({ slug, type: normalizedType })
+          .select('name type')
+          .lean()
+          .then(async (doc) => {
+            if (doc) return doc;
+            return Category.findOne({ slug }).select('name type').lean();
+          })
+      : Category.findOne({ slug }).select('name type').lean(),
+    Promise.resolve(
+      (normalizedType ? CATEGORY_DEFS.find((c) => c.slug === slug && c.type === normalizedType) : null) ||
+      getCategoryBySlug(slug)
+    ),
   ]);
 
   const name = categoryDoc?.name || categoryDefinition?.name;
-  const type = categoryDoc?.type || categoryDefinition?.type;
+  const type = normalizedType || categoryDoc?.type || categoryDefinition?.type;
   return name && type ? { name, type } : null;
 }
 
-function FilterPanel({ idPrefix, categorySlug, normalizedFilters, allMaterials, highestPrice, clearFiltersHref }) {
+function FilterPanel({ idPrefix, categorySlug, categoryType, normalizedFilters, allMaterials, highestPrice, clearFiltersHref }) {
   const minPriceId = `${idPrefix}-minPrice`;
   const maxPriceId = `${idPrefix}-maxPrice`;
   const sortId = `${idPrefix}-sort`;
@@ -106,6 +121,7 @@ function FilterPanel({ idPrefix, categorySlug, normalizedFilters, allMaterials, 
       </div>
 
       <form className="space-y-6" action={`/category/${categorySlug}`} method="get">
+        {categoryType ? <input type="hidden" name="type" value={categoryType} /> : null}
         <div>
           <label htmlFor={minPriceId} className="mb-2 block text-sm font-semibold text-charcoal">Min price</label>
           <input id={minPriceId} name="minPrice" type="number" min="0" defaultValue={normalizedFilters.minPrice || ''} className="min-h-11 w-full rounded-[0.8rem] border border-gold/20 bg-ivory px-3 py-2 text-sm text-charcoal" />
@@ -154,9 +170,10 @@ function FilterPanel({ idPrefix, categorySlug, normalizedFilters, allMaterials, 
   );
 }
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams }) {
   const { slug: categorySlug } = await params;
-  const category = await resolveCategory(categorySlug);
+  const resolvedSearchParams = await searchParams;
+  const category = await resolveCategory(categorySlug, resolvedSearchParams?.type);
   if (!category) notFound();
 
   const { name } = category;
@@ -168,11 +185,12 @@ export async function generateMetadata({ params }) {
 
 export default async function CategoryPage({ params, searchParams }) {
   const { slug: categorySlug } = await params;
-  const normalizedFilters = normalizeSearchParams(await searchParams);
+  const resolvedSearchParams = await searchParams;
+  const normalizedFilters = normalizeSearchParams(resolvedSearchParams);
 
   await connectToDatabase();
 
-  const category = await resolveCategory(categorySlug);
+  const category = await resolveCategory(categorySlug, resolvedSearchParams?.type);
   if (!category) notFound();
 
   const categoryName = category.name;
@@ -195,7 +213,7 @@ export default async function CategoryPage({ params, searchParams }) {
     .limit(PAGE_SIZE)
     .lean();
   const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
-  const clearFiltersHref = `/category/${categorySlug}`;
+  const clearFiltersHref = category.type ? `/category/${categorySlug}?type=${encodeURIComponent(category.type)}` : `/category/${categorySlug}`;
 
   return (
     <main className="min-h-screen bg-ivory">
@@ -216,7 +234,7 @@ export default async function CategoryPage({ params, searchParams }) {
           <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
             <div className="space-y-4 lg:space-y-0">
               <aside className="hidden rounded-[1.25rem] border border-gold/15 bg-white/80 p-5 shadow-soft lg:block">
-                <FilterPanel idPrefix="desktop" categorySlug={categorySlug} normalizedFilters={normalizedFilters} allMaterials={allMaterials} highestPrice={highestPrice} clearFiltersHref={clearFiltersHref} />
+                <FilterPanel idPrefix="desktop" categorySlug={categorySlug} categoryType={category.type} normalizedFilters={normalizedFilters} allMaterials={allMaterials} highestPrice={highestPrice} clearFiltersHref={clearFiltersHref} />
               </aside>
 
               <details className="group rounded-[1.25rem] border border-gold/15 bg-white/80 p-5 shadow-soft lg:hidden">
@@ -225,7 +243,7 @@ export default async function CategoryPage({ params, searchParams }) {
                   <span className="text-sm font-semibold text-gold-dark">Open</span>
                 </summary>
                 <div className="mt-4">
-                  <FilterPanel idPrefix="mobile" categorySlug={categorySlug} normalizedFilters={normalizedFilters} allMaterials={allMaterials} highestPrice={highestPrice} clearFiltersHref={clearFiltersHref} />
+                  <FilterPanel idPrefix="mobile" categorySlug={categorySlug} categoryType={category.type} normalizedFilters={normalizedFilters} allMaterials={allMaterials} highestPrice={highestPrice} clearFiltersHref={clearFiltersHref} />
                 </div>
               </details>
             </div>
@@ -260,14 +278,14 @@ export default async function CategoryPage({ params, searchParams }) {
                   {totalPages > 1 && (
                     <nav aria-label="Pagination" className="mt-8 flex flex-wrap items-center justify-center gap-2">
                       {currentPage > 1 ? (
-                        <Link href={buildFiltersUrl(categorySlug, normalizedFilters, currentPage - 1)} className="rounded-[0.75rem] border border-gold/20 bg-white px-3 py-2 text-sm font-semibold text-charcoal hover:border-gold">Previous</Link>
+                        <Link href={buildFiltersUrl(categorySlug, normalizedFilters, currentPage - 1, category.type)} className="rounded-[0.75rem] border border-gold/20 bg-white px-3 py-2 text-sm font-semibold text-charcoal hover:border-gold">Previous</Link>
                       ) : (
                         <span aria-disabled="true" className="rounded-[0.75rem] border border-gold/10 bg-white/50 px-3 py-2 text-sm text-charcoal/40">Previous</span>
                       )}
                       {pageNumbers.map((pageNumber) => (
                         <Link
                           key={pageNumber}
-                          href={buildFiltersUrl(categorySlug, normalizedFilters, pageNumber)}
+                          href={buildFiltersUrl(categorySlug, normalizedFilters, pageNumber, category.type)}
                           aria-current={pageNumber === currentPage ? 'page' : undefined}
                           className={`rounded-[0.75rem] border px-3 py-2 text-sm font-semibold ${pageNumber === currentPage ? 'border-gold bg-gold text-white' : 'border-gold/20 bg-white text-charcoal hover:border-gold'}`}
                         >
@@ -275,7 +293,7 @@ export default async function CategoryPage({ params, searchParams }) {
                         </Link>
                       ))}
                       {currentPage < totalPages ? (
-                        <Link href={buildFiltersUrl(categorySlug, normalizedFilters, currentPage + 1)} className="rounded-[0.75rem] border border-gold/20 bg-white px-3 py-2 text-sm font-semibold text-charcoal hover:border-gold">Next</Link>
+                        <Link href={buildFiltersUrl(categorySlug, normalizedFilters, currentPage + 1, category.type)} className="rounded-[0.75rem] border border-gold/20 bg-white px-3 py-2 text-sm font-semibold text-charcoal hover:border-gold">Next</Link>
                       ) : (
                         <span aria-disabled="true" className="rounded-[0.75rem] border border-gold/10 bg-white/50 px-3 py-2 text-sm text-charcoal/40">Next</span>
                       )}

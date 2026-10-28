@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import SafeImage from '@/components/SafeImage';
 import { CATEGORY_DEFS } from '@/lib/categoryMap';
 import { useCart } from '@/lib/CartContext';
 
@@ -60,12 +61,14 @@ function groupCategories(categories = []) {
   return grouped;
 }
 
-export default function Navbar({ categories = [] }) {
+export default function Navbar({ categories = [], logoUrl = '/logo.svg' }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [accountOpen, setAccountOpen] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
   const shopMenuRef = useRef(null);
   const accountMenuRef = useRef(null);
+  const pathname = usePathname();
   const router = useRouter();
   const { cartCount } = useCart();
   const { data: session, status } = useSession();
@@ -112,15 +115,27 @@ export default function Navbar({ categories = [] }) {
           <button className="grid h-11 w-11 place-items-center rounded-full border border-gold/20 bg-white/70 text-charcoal transition hover:border-gold hover:text-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold lg:hidden" type="button" aria-label={isOpen ? 'Close menu' : 'Open menu'} aria-expanded={isOpen} aria-controls="mobile-navigation" onClick={() => setIsOpen((prev) => !prev)}>
             {isOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
-          <Link href="/" className="flex min-h-11 items-center whitespace-nowrap font-fraunces text-base tracking-normal text-charcoal transition hover:text-gold-dark lg:text-2xl lg:tracking-[0.08em]">
-            Nandini Jewellers
+          <Link href="/" className="flex min-h-11 items-center gap-2 whitespace-nowrap font-fraunces text-base tracking-normal text-charcoal transition hover:text-gold-dark lg:text-2xl lg:tracking-[0.08em] min-w-0">
+            {logoUrl && !logoFailed ? (
+              <SafeImage
+                src={logoUrl}
+                alt="Nandini Jewellers"
+                width={120}
+                height={36}
+                sizes="(max-width: 1023px) 28px, 36px"
+                className="h-[28px] w-auto max-w-[80px] shrink-0 object-contain lg:h-[36px] lg:max-w-[120px]"
+                onError={() => setLogoFailed(true)}
+              />
+            ) : null}
+            <span className="truncate">Nandini Jewellers</span>
           </Link>
         </div>
 
         <nav className="hidden items-center gap-6 lg:flex">
+          <Link href="/" aria-current={pathname === '/' ? 'page' : undefined} className={`text-sm font-medium transition hover:text-gold-dark ${pathname === '/' ? 'text-gold-dark' : 'text-charcoal'}`}>Home</Link>
           <div className="group relative">
             <details ref={shopMenuRef} className="group/list">
-              <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-charcoal transition hover:bg-gold/10 hover:text-gold-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+              <summary className={`flex cursor-pointer list-none items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition hover:bg-gold/10 hover:text-gold-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${pathname?.startsWith('/category/') ? 'text-gold-dark' : 'text-charcoal'}`}>
                 Shop
                 <span className="text-xs">▾</span>
               </summary>
@@ -131,7 +146,7 @@ export default function Navbar({ categories = [] }) {
                       <p className="mb-2 text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-gold">{section.title}</p>
                       <div className="space-y-1">
                         {section.items.map((category) => (
-                          <Link key={category.slug} href={`/category/${category.slug}`} onClick={() => { shopMenuRef.current.open = false; }} className="flex min-h-11 items-center rounded-[0.75rem] px-3 py-2 text-sm text-charcoal transition hover:bg-blush/20 hover:text-gold-dark">
+                          <Link key={category.slug} href={`/category/${category.slug}?type=${encodeURIComponent(section.title)}`} aria-current={pathname === `/category/${category.slug}` ? 'page' : undefined} onClick={() => { shopMenuRef.current.open = false; }} className={`flex min-h-11 items-center rounded-[0.75rem] px-3 py-2 text-sm transition hover:bg-blush/20 hover:text-gold-dark ${pathname === `/category/${category.slug}` ? 'text-gold-dark' : 'text-charcoal'}`}>
                             {category.name}
                           </Link>
                         ))}
@@ -142,8 +157,8 @@ export default function Navbar({ categories = [] }) {
               </div>
             </details>
           </div>
-          <Link href="/about" className="text-sm font-medium text-charcoal transition hover:text-gold-dark">About</Link>
-          <Link href="/contact" className="text-sm font-medium text-charcoal transition hover:text-gold-dark">Contact</Link>
+          <Link href="/about" aria-current={pathname === '/about' ? 'page' : undefined} className={`text-sm font-medium transition hover:text-gold-dark ${pathname === '/about' ? 'text-gold-dark' : 'text-charcoal'}`}>About</Link>
+          <Link href="/contact" aria-current={pathname === '/contact' ? 'page' : undefined} className={`text-sm font-medium transition hover:text-gold-dark ${pathname === '/contact' ? 'text-gold-dark' : 'text-charcoal'}`}>Contact</Link>
           {status === 'authenticated' && session?.user?.role === 'admin' ? (
             <Link href="/admin" className="text-sm font-medium text-charcoal transition hover:text-gold-dark">Admin Dashboard</Link>
           ) : null}
@@ -241,7 +256,7 @@ export default function Navbar({ categories = [] }) {
                 <SearchIcon />
               </button>
             </form>
-            <Link href="/" className="flex min-h-11 items-center rounded-[0.85rem] px-3 py-2 text-sm font-medium text-charcoal transition hover:bg-gold/10 hover:text-gold-dark" onClick={() => setIsOpen(false)}>
+            <Link href="/" aria-current={pathname === '/' ? 'page' : undefined} className={`flex min-h-11 items-center rounded-[0.85rem] px-3 py-2 text-sm font-medium transition hover:bg-gold/10 hover:text-gold-dark ${pathname === '/' ? 'text-gold-dark' : 'text-charcoal'}`} onClick={() => setIsOpen(false)}>
               Home
             </Link>
             {sections.map((section) => (
@@ -249,17 +264,17 @@ export default function Navbar({ categories = [] }) {
                 <p className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-gold">{section.title}</p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {section.items.map((category) => (
-                    <Link key={category.slug} href={`/category/${category.slug}`} className="flex min-h-11 items-center rounded-[0.75rem] px-2 py-2 text-sm text-charcoal transition hover:bg-blush/20 hover:text-gold-dark" onClick={() => setIsOpen(false)}>
+                    <Link key={category.slug} href={`/category/${category.slug}?type=${encodeURIComponent(section.title)}`} aria-current={pathname === `/category/${category.slug}` ? 'page' : undefined} className={`flex min-h-11 items-center rounded-[0.75rem] px-2 py-2 text-sm transition hover:bg-blush/20 hover:text-gold-dark ${pathname === `/category/${category.slug}` ? 'text-gold-dark' : 'text-charcoal'}`} onClick={() => setIsOpen(false)}>
                       {category.name}
                     </Link>
                   ))}
                 </div>
               </div>
             ))}
-            <Link href="/about" className="flex min-h-11 items-center rounded-[0.85rem] px-3 py-2 text-sm font-medium text-charcoal transition hover:bg-gold/10 hover:text-gold-dark" onClick={() => setIsOpen(false)}>
+            <Link href="/about" aria-current={pathname === '/about' ? 'page' : undefined} className={`flex min-h-11 items-center rounded-[0.85rem] px-3 py-2 text-sm font-medium transition hover:bg-gold/10 hover:text-gold-dark ${pathname === '/about' ? 'text-gold-dark' : 'text-charcoal'}`} onClick={() => setIsOpen(false)}>
               About
             </Link>
-            <Link href="/contact" className="flex min-h-11 items-center rounded-[0.85rem] px-3 py-2 text-sm font-medium text-charcoal transition hover:bg-gold/10 hover:text-gold-dark" onClick={() => setIsOpen(false)}>
+            <Link href="/contact" aria-current={pathname === '/contact' ? 'page' : undefined} className={`flex min-h-11 items-center rounded-[0.85rem] px-3 py-2 text-sm font-medium transition hover:bg-gold/10 hover:text-gold-dark ${pathname === '/contact' ? 'text-gold-dark' : 'text-charcoal'}`} onClick={() => setIsOpen(false)}>
               Contact
             </Link>
             {status === 'authenticated' && session?.user?.role === 'admin' ? (

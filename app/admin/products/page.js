@@ -10,6 +10,7 @@ function formatPrice(value) {
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
   const loadProducts = async () => {
@@ -50,25 +51,61 @@ export default function AdminProductsPage() {
     }
   };
 
+  const filteredProducts = products.filter((product) => {
+    if (!search.trim()) return true;
+    const q = search.trim().toLowerCase();
+    return (
+      product.name?.toLowerCase().includes(q) ||
+      product.category?.toLowerCase().includes(q) ||
+      product.slug?.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Catalog</p>
-          <h2 className="mt-2 font-fraunces text-3xl text-charcoal">Products</h2>
+      {/* Sticky header: Title + Search + Add Action */}
+      <div className="sticky top-0 z-20 space-y-4 bg-ivory/95 pb-4 pt-1 backdrop-blur-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Catalog</p>
+            <h2 className="mt-2 font-fraunces text-3xl text-charcoal">Products</h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative min-w-[200px] flex-1 sm:w-64 sm:flex-none">
+              <input
+                type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search products..."
+                aria-label="Search products"
+                className="h-11 w-full rounded-full border border-gold/20 bg-white px-4 text-sm text-charcoal outline-none placeholder:text-charcoal/40 focus:border-gold"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-charcoal/50 hover:text-charcoal"
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <Link href="/admin/products/new" className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark">
+              + Add product
+            </Link>
+          </div>
         </div>
-        <Link href="/admin/products/new" className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark">
-          + Add product
-        </Link>
       </div>
 
+      {/* Only the list scrolls */}
       <div className="overflow-hidden rounded-[1.5rem] border border-gold/15 bg-white shadow-soft">
-        <div className="overflow-x-auto">
+        <div className="max-h-[calc(100vh-14rem)] min-h-[300px] overflow-auto">
           {loading ? (
             <div className="p-6 text-sm text-charcoal/70">Loading products…</div>
           ) : (
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-ivory text-charcoal/70">
+              <thead className="sticky top-0 z-10 bg-ivory text-charcoal/70 shadow-sm">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Image</th>
                   <th className="px-4 py-3 font-semibold">Name</th>
@@ -81,12 +118,12 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody>
-                {products.length ? (
-                  products.map((product) => (
+                {filteredProducts.length ? (
+                  filteredProducts.map((product) => (
                     <tr key={product._id} className="border-t border-gold/10 align-middle">
                       <td className="px-4 py-3">
                         {product.images?.[0] ? (
-                          <SafeImage src={product.images?.[0] || '/hero-placeholder.svg'} alt={product.name} width={48} height={48} sizes="48px" className="h-12 w-12 rounded-lg object-cover" />
+                          <SafeImage src={product.images?.[0] || '/category-placeholder.svg'} alt={product.name} width={48} height={48} sizes="48px" className="h-12 w-12 rounded-lg object-cover" />
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-ivory text-[10px] uppercase tracking-[0.2em] text-charcoal/50">No image</div>
                         )}
@@ -120,7 +157,7 @@ export default function AdminProductsPage() {
                 ) : (
                   <tr>
                     <td colSpan="8" className="px-4 py-8 text-center text-sm text-charcoal/60">
-                      No products have been created yet.
+                      {products.length === 0 ? 'No products have been created yet.' : 'No products match your search.'}
                     </td>
                   </tr>
                 )}
