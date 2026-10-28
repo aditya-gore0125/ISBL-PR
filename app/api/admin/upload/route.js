@@ -31,7 +31,7 @@ export async function POST(request) {
     }
 
     const result = await uploadImage(Buffer.from(await image.arrayBuffer()));
-    return NextResponse.json({ secure_url: result.secure_url }, { status: 201 });
+    return NextResponse.json({ secure_url: result.secure_url, public_id: result.public_id }, { status: 201 });
   } catch (error) {
     console.error('Admin image upload error', error);
     return NextResponse.json({ message: error.message || 'Unable to upload image.' }, { status: 500 });

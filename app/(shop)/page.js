@@ -5,6 +5,7 @@ import SectionDivider from '@/components/SectionDivider';
 import connectToDatabase from '@/lib/mongodb';
 import { CATEGORY_DEFS } from '@/lib/categoryMap';
 import { getCategories } from '@/lib/data';
+import { getSiteSettings } from '@/lib/siteSettings';
 import Product from '@/models/Product';
 
 export const dynamic = 'force-dynamic';
@@ -34,11 +35,23 @@ function groupCategories(categories = []) {
 export default async function HomePage() {
   await connectToDatabase();
 
-  const loadedCategories = await getCategories();
-  const categories = loadedCategories.length ? loadedCategories : CATEGORY_DEFS;
-  const featuredProducts = await Product.find({ isFeatured: true }).sort({ createdAt: -1 }).limit(4).lean();
-  const newArrivals = await Product.find({ isNewArrival: true }).sort({ createdAt: -1 }).limit(4).lean();
+  const [{ logoUrl }, loadedCategories, featuredProducts, newArrivals] = await Promise.all([
+    getSiteSettings(),
+    getCategories(),
+    Product.find({ isFeatured: true })
+      .select('name slug price discountPrice images description category type stock sizes rating numReviews')
+      .sort({ createdAt: -1 })
+      .limit(4)
+      .lean(),
+    Product.find({ isNewArrival: true })
+      .select('name slug price discountPrice images description category type stock sizes rating numReviews')
+      .sort({ createdAt: -1 })
+      .limit(4)
+      .lean(),
+  ]);
 
+  const heroLogoUrl = logoUrl || '/logo.svg';
+  const categories = loadedCategories.length ? loadedCategories : CATEGORY_DEFS;
   const groupedCategories = groupCategories(categories);
 
   return (
@@ -63,8 +76,17 @@ export default async function HomePage() {
                   </Link>
                 </div>
               </div>
-              <div className="overflow-hidden rounded-[1.25rem] border border-gold/15 bg-white/70">
-                <SafeImage src="/hero-placeholder.svg" alt="Placeholder jewelry hero artwork" width={900} height={700} sizes="(max-width: 1023px) 100vw, 50vw" priority className="h-full min-h-[280px] w-full object-cover" />
+              <div className="flex h-full min-h-[280px] w-full items-center justify-center overflow-hidden rounded-[1.25rem] border border-gold/15 bg-gradient-to-br from-ivory to-blush p-6">
+                <SafeImage
+                  src={heroLogoUrl}
+                  alt="Nandini Jewellers"
+                  width={900}
+                  height={700}
+                  sizes="(max-width: 1023px) 100vw, 50vw"
+                  priority
+                  hideOnError
+                  className="h-full w-full max-h-[85%] max-w-[85%] rounded-[12px] object-contain"
+                />
               </div>
             </div>
           </div>
@@ -84,9 +106,9 @@ export default async function HomePage() {
               <h3 className="mb-4 font-fraunces text-2xl text-charcoal">Shop for Her</h3>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {groupedCategories.Ladies.map((category) => (
-                  <Link key={category.slug} href={`/category/${category.slug}`} className="group overflow-hidden rounded-[1.2rem] border border-gold/15 bg-white/80 shadow-soft transition hover:-translate-y-1">
+                  <Link key={category.slug} href={`/category/${category.slug}?type=Ladies`} className="group overflow-hidden rounded-[1.2rem] border border-gold/15 bg-white/80 shadow-soft transition hover:-translate-y-1">
                     <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-blush/30 via-ivory to-gold/10">
-                      <SafeImage src={category.image || '/hero-placeholder.svg'} alt={category.name} width={600} height={450} sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                      <SafeImage src={category.image?.trim() || '/category-placeholder.svg'} alt={category.name} width={600} height={450} sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                     </div>
                     <div className="p-4">
                       <h4 className="font-fraunces text-xl text-charcoal">{category.name}</h4>
@@ -100,9 +122,9 @@ export default async function HomePage() {
               <h3 className="mb-4 font-fraunces text-2xl text-charcoal">Shop for Him</h3>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {groupedCategories.Gents.map((category) => (
-                  <Link key={category.slug} href={`/category/${category.slug}`} className="group overflow-hidden rounded-[1.2rem] border border-gold/15 bg-white/80 shadow-soft transition hover:-translate-y-1">
+                  <Link key={category.slug} href={`/category/${category.slug}?type=Gents`} className="group overflow-hidden rounded-[1.2rem] border border-gold/15 bg-white/80 shadow-soft transition hover:-translate-y-1">
                     <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-blush/30 via-ivory to-gold/10">
-                      <SafeImage src={category.image || '/hero-placeholder.svg'} alt={category.name} width={600} height={450} sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                      <SafeImage src={category.image?.trim() || '/category-placeholder.svg'} alt={category.name} width={600} height={450} sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                     </div>
                     <div className="p-4">
                       <h4 className="font-fraunces text-xl text-charcoal">{category.name}</h4>

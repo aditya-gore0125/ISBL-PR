@@ -58,6 +58,9 @@ productSchema.pre('save', function syncSizeStock(next) {
 });
 
 productSchema.index({ name: 'text', description: 'text', category: 'text' });
+productSchema.index({ isFeatured: 1, createdAt: -1 });
+productSchema.index({ isNewArrival: 1, createdAt: -1 });
+productSchema.index({ category: 1, type: 1 });
 
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 export default Product;

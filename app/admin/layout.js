@@ -13,6 +13,7 @@ const navItems = [
   { href: '/admin/orders', label: 'Orders' },
   { href: '/admin/inquiries', label: 'Inquiries' },
   { href: '/admin/categories', label: 'Categories' },
+  { href: '/admin/settings', label: 'Settings' },
 ];
 
 export default async function AdminLayout({ children }) {

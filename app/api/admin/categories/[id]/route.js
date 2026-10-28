@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import connectToDatabase from '@/lib/mongodb';
 import Category from '@/models/Category';
 import Product from '@/models/Product';
@@ -34,6 +35,9 @@ export async function PUT(request, { params }) {
     await connectToDatabase();
     const category = await Category.findByIdAndUpdate(id, payload, { new: true, runValidators: true }).lean();
     if (!category) return NextResponse.json({ message: 'Category not found.' }, { status: 404 });
+    revalidatePath('/');
+    revalidatePath('/collections');
+    revalidatePath('/category/[slug]', 'layout');
     return NextResponse.json({ category });
   } catch (error) {
     if (invalidId(error)) return NextResponse.json({ message: 'Invalid category id.' }, { status: 400 });
@@ -57,6 +61,9 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ message: 'Move or delete this category\'s products before deleting it.' }, { status: 409 });
     }
     await Category.findByIdAndDelete(id);
+    revalidatePath('/');
+    revalidatePath('/collections');
+    revalidatePath('/category/[slug]', 'layout');
     return NextResponse.json({ message: 'Category deleted.' });
   } catch (error) {
     if (invalidId(error)) return NextResponse.json({ message: 'Invalid category id.' }, { status: 400 });

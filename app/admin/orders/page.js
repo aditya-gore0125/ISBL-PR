@@ -88,52 +88,61 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Orders</p>
-          <h2 className="mt-2 font-fraunces text-3xl text-charcoal">Order management</h2>
+      {/* Sticky header: Title + Search & Filters */}
+      <div className="sticky top-0 z-20 space-y-4 bg-ivory/95 pb-4 pt-1 backdrop-blur-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Orders</p>
+            <h2 className="mt-2 font-fraunces text-3xl text-charcoal">Order management</h2>
+          </div>
         </div>
 
+        <div className="grid gap-3 rounded-[1rem] border border-gold/15 bg-white p-4 sm:grid-cols-2 xl:grid-cols-4 shadow-soft">
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-charcoal/60">Search</span>
+            <input
+              value={search}
+              onChange={(event) => { setSearch(event.target.value); setPage(1); }}
+              placeholder="Order ID, customer, email, phone"
+              aria-label="Search orders"
+              className="h-10 w-full rounded-lg border border-gold/20 bg-ivory px-3 text-sm text-charcoal outline-none focus:border-gold"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-charcoal/60">Order status</span>
+            <select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }} aria-label="Order status filter" className="h-10 w-full rounded-lg border border-gold/20 bg-ivory px-3 text-sm text-charcoal outline-none focus:border-gold">
+              {orderStatuses.map((status) => (
+                <option key={status} value={status}>{status === 'all' ? 'All statuses' : status.replaceAll('_', ' ')}</option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-charcoal/60">Payment status</span>
+            <select value={paymentStatusFilter} onChange={(event) => { setPaymentStatusFilter(event.target.value); setPage(1); }} aria-label="Payment status filter" className="h-10 w-full rounded-lg border border-gold/20 bg-ivory px-3 text-sm text-charcoal outline-none focus:border-gold">
+              {paymentStatuses.map((status) => (
+                <option key={status} value={status}>{status === 'all' ? 'All payments' : status}</option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-charcoal/60">Sort</span>
+            <select value={sort} onChange={(event) => { setSort(event.target.value); setPage(1); }} aria-label="Sort orders" className="h-10 w-full rounded-lg border border-gold/20 bg-ivory px-3 text-sm text-charcoal outline-none focus:border-gold">
+              {sortOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
+        </div>
       </div>
 
-      <div className="grid gap-3 rounded-[1rem] border border-gold/15 bg-white p-4 sm:grid-cols-2 xl:grid-cols-4">
-        <label className="block">
-          <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-charcoal/60">Search</span>
-          <input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Order ID, customer, email, phone" className="h-10 w-full rounded-lg border border-gold/20 bg-ivory px-3 text-sm text-charcoal outline-none focus:border-gold" />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-charcoal/60">Order status</span>
-          <select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }} className="h-10 w-full rounded-lg border border-gold/20 bg-ivory px-3 text-sm text-charcoal outline-none focus:border-gold">
-            {orderStatuses.map((status) => (
-              <option key={status} value={status}>{status === 'all' ? 'All statuses' : status.replaceAll('_', ' ')}</option>
-            ))}
-          </select>
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-charcoal/60">Payment status</span>
-          <select value={paymentStatusFilter} onChange={(event) => { setPaymentStatusFilter(event.target.value); setPage(1); }} className="h-10 w-full rounded-lg border border-gold/20 bg-ivory px-3 text-sm text-charcoal outline-none focus:border-gold">
-            {paymentStatuses.map((status) => (
-              <option key={status} value={status}>{status === 'all' ? 'All payments' : status}</option>
-            ))}
-          </select>
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-charcoal/60">Sort</span>
-          <select value={sort} onChange={(event) => { setSort(event.target.value); setPage(1); }} className="h-10 w-full rounded-lg border border-gold/20 bg-ivory px-3 text-sm text-charcoal outline-none focus:border-gold">
-            {sortOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </select>
-        </label>
-      </div>
-
+      {/* Only the list scrolls */}
       <div className="overflow-hidden rounded-[1.5rem] border border-gold/15 bg-white shadow-soft">
-        <div className="overflow-x-auto">
+        <div className="max-h-[calc(100vh-22rem)] min-h-[300px] overflow-auto">
           {loading ? (
             <div className="p-6 text-sm text-charcoal/70">Loading orders…</div>
           ) : error ? (
             <div className="p-6 text-sm text-maroon">{error}</div>
           ) : (
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-ivory text-charcoal/70">
+              <thead className="sticky top-0 z-10 bg-ivory text-charcoal/70 shadow-sm">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Order ID</th>
                   <th className="px-4 py-3 font-semibold">Customer</th>

@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import SafeImage from '@/components/SafeImage';
+import { MAP_EMBED_URL, MAP_SHARE_URL } from '@/lib/storeInfo';
 
 const trustBadges = ['Certified Materials', '7-Day Returns', 'Secure Payments', 'Free Shipping over ₹999'];
 
@@ -30,7 +32,7 @@ function SocialLinks() {
   );
 }
 
-export default function Footer() {
+export default function Footer({ logoUrl = '/logo.svg' }) {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({ message: '', kind: '' });
@@ -70,18 +72,53 @@ export default function Footer() {
             <p className="mt-3 max-w-md text-sm leading-7 text-charcoal/75">
               Designed for modern rituals, with luminous gold accents and heirloom-inspired pieces that feel effortless and elevated.
             </p>
+            {logoUrl ? (
+              <div className="mt-4">
+                <SafeImage
+                  src={logoUrl}
+                  alt="Nandini Jewellers"
+                  width={140}
+                  height={40}
+                  sizes="140px"
+                  className="h-9 w-auto object-contain"
+                />
+              </div>
+            ) : null}
             <address className="mt-3 max-w-md text-sm leading-7 text-charcoal/75 not-italic">
               Nandini Jewellers<br />
               Manohar Sankul,<br />
               Kanade Maruti Lane, Near Dahipul,<br />
               Nashik, Maharashtra, India.
             </address>
+            <div className="mt-4 max-w-md">
+              <iframe
+                src={MAP_EMBED_URL}
+                width="100%"
+                height="180"
+                style={{ border: 0 }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Nandini Jewellers location"
+                className="h-[180px] w-full rounded-[12px] border border-gold/30"
+              />
+              <div className="mt-2">
+                <a
+                  href={MAP_SHARE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-gold-dark hover:text-gold"
+                >
+                  Get Directions →
+                </a>
+              </div>
+            </div>
             <SocialLinks />
           </div>
 
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-gold">Helpful links</h3>
             <ul className="mt-4 space-y-2 text-sm text-charcoal/80">
+              <li><Link href="/" className="inline-flex min-h-11 items-center px-3 transition hover:text-gold-dark">Home</Link></li>
               <li><Link href="/about" className="inline-flex min-h-11 items-center px-3 transition hover:text-gold-dark">About</Link></li>
               <li><Link href="/contact" className="inline-flex min-h-11 items-center px-3 transition hover:text-gold-dark">Contact</Link></li>
               <li><Link href="/shipping" className="inline-flex min-h-11 items-center px-3 transition hover:text-gold-dark">Shipping Policy</Link></li>

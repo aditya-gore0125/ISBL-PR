@@ -162,7 +162,7 @@ export default async function ProductDetailPage({ params }) {
                 name={String(product.name || '')}
                 price={Number(product.price || 0)}
                 discountPrice={Number(product.discountPrice || 0)}
-                image={String(product.images?.[0] || '/hero-placeholder.svg')}
+                image={String(product.images?.[0] || '/category-placeholder.svg')}
                 stock={totalStock}
                 sizes={Array.isArray(product.sizes) ? product.sizes : []}
                 type={String(product.type || '')}

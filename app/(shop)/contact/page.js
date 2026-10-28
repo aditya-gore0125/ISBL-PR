@@ -104,12 +104,11 @@ export default function ContactPage() {
                   🏛
                 </div>
                 <h3 className="mt-5 font-fraunces text-xl text-charcoal">Flagship Showroom</h3>
-                <p className="mt-2 text-sm text-charcoal/70 leading-relaxed">
-                  Heritage Royale Arcade, Near MG Road, Camp, Pune, Maharashtra 411001
-                </p>
-                <div className="mt-4 space-y-1 text-xs text-charcoal/80">
-                  <p><span className="font-semibold text-charcoal">Mon – Sat:</span> 10:30 AM – 8:30 PM</p>
-                  <p><span className="font-semibold text-charcoal">Sunday:</span> 11:00 AM – 7:30 PM</p>
+                <div className="mt-2 text-sm text-charcoal/70 leading-relaxed">
+                  <p>Nandini Jewellers</p>
+                  <p>Manohar Sankul,</p>
+                  <p>Kanade Maruti Lane, Near Dahipul,</p>
+                  <p>Nashik, Maharashtra, India</p>
                 </div>
               </div>
               <div className="mt-6 pt-4 border-t border-gold/10">

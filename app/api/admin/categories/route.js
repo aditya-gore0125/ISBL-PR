@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import connectToDatabase from '@/lib/mongodb';
 import Category from '@/models/Category';
+import Product from '@/models/Product';
 import { categoryCreateSchema } from '@/lib/schemas';
 import { validateJsonRequest } from '@/lib/validateRequest';
 import { requireAdmin } from '@/lib/requireAdmin';
@@ -13,7 +15,27 @@ export async function GET() {
   try {
     await connectToDatabase();
     const categories = await Category.find().sort({ displayOrder: 1, name: 1 }).lean();
-    return NextResponse.json({ categories });
+    const counts = await Product.aggregate([
+      {
+        $group: {
+          _id: { category: '$category', type: '$type' },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+    const countMap = new Map();
+    counts.forEach((c) => {
+      if (c._id?.category && c._id?.type) {
+        countMap.set(`${c._id.category}__${c._id.type}`, c.count);
+      }
+    });
+
+    const categoriesWithCounts = categories.map((cat) => ({
+      ...cat,
+      productCount: countMap.get(`${cat.name}__${cat.type}`) || 0,
+    }));
+
+    return NextResponse.json({ categories: categoriesWithCounts });
   } catch (error) {
     console.error('Admin category list error', error);
     return NextResponse.json({ message: 'Unable to load categories.' }, { status: 500 });
@@ -39,6 +61,9 @@ export async function POST(request) {
       image,
       displayOrder,
     });
+    revalidatePath('/');
+    revalidatePath('/collections');
+    revalidatePath('/category/[slug]', 'layout');
     return NextResponse.json({ category }, { status: 201 });
   } catch (error) {
     console.error('Admin category create error', error);
