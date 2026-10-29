@@ -57,12 +57,19 @@ async function getKpis(from, to) {
   const previousFrom = new Date(previousTo.getTime() - duration);
   const buildPipeline = (start, end) => [
     { $match: { ...SALES_MATCH, createdAt: { $gte: start, $lte: end } } },
-    { $unwind: '$items' },
     { $group: {
       _id: null,
       revenue: { $sum: { $ifNull: ['$totalAmount', 0] } },
       orders: { $sum: 1 },
-      units: { $sum: { $sum: '$items.quantity' } },
+      units: {
+        $sum: {
+          $reduce: {
+            input: { $ifNull: ['$items', []] },
+            initialValue: 0,
+            in: { $add: ['$$value', { $ifNull: ['$$this.quantity', 0] }] },
+          },
+        },
+      },
       customers: { $addToSet: '$user' },
     } },
   ];
