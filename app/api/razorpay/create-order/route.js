@@ -62,6 +62,7 @@ export async function POST(request) {
       orderStatus: 'pending',
       paymentStatus: 'pending',
       needsReview: false,
+      ...(body.shippingAddress ? { shippingAddress: body.shippingAddress } : {}),
     });
 
     return Response.json({

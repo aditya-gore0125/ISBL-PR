@@ -56,23 +56,44 @@ export async function PUT(request) {
     if (response) return response;
 
     const update = {};
+    const unset = {};
     if (body?.profile !== undefined) {
       update.name = body.profile.name;
-      update.phone = body.profile.phone;
+      if (body.profile.phone) {
+        update.phone = body.profile.phone;
+      } else {
+        unset.phone = 1;
+      }
     }
 
     if (body?.addresses !== undefined) {
       update.addresses = body.addresses;
     }
 
-    if (!Object.keys(update).length) {
+    if (!Object.keys(update).length && !Object.keys(unset).length) {
       return NextResponse.json({ message: 'No account changes were provided.' }, { status: 400 });
     }
 
     await connectToDatabase();
+
+    if (body?.profile?.phone) {
+      const duplicateUser = await User.findOne({
+        phone: body.profile.phone,
+        _id: { $ne: session.user.id },
+      }).lean();
+      if (duplicateUser) {
+        return NextResponse.json({ message: 'This phone number is already registered.' }, { status: 409 });
+      }
+    }
+
+    const updateOps = { $set: update };
+    if (Object.keys(unset).length) {
+      updateOps.$unset = unset;
+    }
+
     const user = await User.findByIdAndUpdate(
       session.user.id,
-      { $set: update },
+      updateOps,
       { new: true, runValidators: true }
     ).lean();
 
@@ -82,6 +103,11 @@ export async function PUT(request) {
 
     return NextResponse.json({ message: 'Account updated successfully.', user: serializeUser(user) });
   } catch (error) {
+    if (error?.code === 11000) {
+      if (error.keyPattern?.phone || (error.message && error.message.includes('phone'))) {
+        return NextResponse.json({ message: 'This phone number is already registered.' }, { status: 409 });
+      }
+    }
     console.error('Account PUT error', error);
     return NextResponse.json({ message: 'Unable to update account right now.' }, { status: 500 });
   }

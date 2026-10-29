@@ -21,6 +21,13 @@ export async function POST(request) {
       return Response.json({ message: 'This email is already registered.' }, { status: 409 });
     }
 
+    if (phone) {
+      const existingPhone = await User.findOne({ phone }).lean();
+      if (existingPhone) {
+        return Response.json({ message: 'This phone number is already registered.' }, { status: 409 });
+      }
+    }
+
     const hashedPassword = await hash(password, 12);
     const newUser = await User.create({
       name,
@@ -43,6 +50,14 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
+    if (error?.code === 11000) {
+      if (error.keyPattern?.phone || (error.message && error.message.includes('phone'))) {
+        return Response.json({ message: 'This phone number is already registered.' }, { status: 409 });
+      }
+      if (error.keyPattern?.email || (error.message && error.message.includes('email'))) {
+        return Response.json({ message: 'This email is already registered.' }, { status: 409 });
+      }
+    }
     console.error('Signup error', error);
     return Response.json({ message: 'Unable to create account right now.' }, { status: 500 });
   }

@@ -167,6 +167,7 @@ export default async function ProductDetailPage({ params }) {
                 sizes={Array.isArray(product.sizes) ? product.sizes : []}
                 type={String(product.type || '')}
                 category={String(product.category || '')}
+                slug={String(product.slug || '')}
               />
 
               <div className="mt-8 rounded-[1.2rem] border border-gold/15 bg-white/70 p-5 shadow-soft">

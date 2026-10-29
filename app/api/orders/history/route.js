@@ -14,7 +14,7 @@ export async function GET() {
     }
 
     await connectToDatabase();
-    const orders = await Order.find({ user: session.user.id })
+    const orders = await Order.find({ user: session.user.id, paymentStatus: 'paid' })
       .sort({ createdAt: -1 })
       .lean();
 

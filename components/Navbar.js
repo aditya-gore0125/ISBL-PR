@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import SafeImage from '@/components/SafeImage';
 import { CATEGORY_DEFS } from '@/lib/categoryMap';
 import { useCart } from '@/lib/CartContext';
+import { useWishlist } from '@/lib/WishlistContext';
 
 function MenuIcon() {
   return (
@@ -50,6 +51,14 @@ function BagIcon() {
   );
 }
 
+function HeartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+    </svg>
+  );
+}
+
 function groupCategories(categories = []) {
   const grouped = { Ladies: [], Gents: [] };
 
@@ -71,6 +80,7 @@ export default function Navbar({ categories = [], logoUrl = '/logo.svg' }) {
   const pathname = usePathname();
   const router = useRouter();
   const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const { data: session, status } = useSession();
   const categoryGroups = groupCategories(categories.length ? categories : CATEGORY_DEFS);
   const sections = [
@@ -230,6 +240,18 @@ export default function Navbar({ categories = [], logoUrl = '/logo.svg' }) {
               </Link>
             )}
           </div>
+          <Link
+            href="/wishlist"
+            className="relative grid h-11 w-11 place-items-center rounded-full border border-gold/20 bg-white/70 text-charcoal transition hover:border-gold hover:text-maroon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            aria-label={`Wishlist${wishlistCount > 0 ? ` (${wishlistCount} items)` : ''}`}
+          >
+            <HeartIcon />
+            {wishlistCount > 0 ? (
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-maroon text-[0.65rem] font-semibold text-white">
+                {wishlistCount}
+              </span>
+            ) : null}
+          </Link>
           <Link href="/cart" className="relative grid h-11 w-11 place-items-center rounded-full border border-gold/20 bg-gold/10 text-charcoal transition hover:border-gold hover:text-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="Cart">
             <BagIcon />
             {cartCount > 0 ? (
@@ -258,6 +280,22 @@ export default function Navbar({ categories = [], logoUrl = '/logo.svg' }) {
             </form>
             <Link href="/" aria-current={pathname === '/' ? 'page' : undefined} className={`flex min-h-11 items-center rounded-[0.85rem] px-3 py-2 text-sm font-medium transition hover:bg-gold/10 hover:text-gold-dark ${pathname === '/' ? 'text-gold-dark' : 'text-charcoal'}`} onClick={() => setIsOpen(false)}>
               Home
+            </Link>
+            <Link
+              href="/wishlist"
+              aria-current={pathname === '/wishlist' ? 'page' : undefined}
+              className={`flex min-h-11 items-center justify-between rounded-[0.85rem] px-3 py-2 text-sm font-medium transition hover:bg-gold/10 hover:text-gold-dark ${pathname === '/wishlist' ? 'text-gold-dark' : 'text-charcoal'}`}
+              onClick={() => setIsOpen(false)}
+            >
+              <span className="flex items-center gap-2">
+                <HeartIcon />
+                Wishlist
+              </span>
+              {wishlistCount > 0 ? (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-maroon text-[0.65rem] font-semibold text-white">
+                  {wishlistCount}
+                </span>
+              ) : null}
             </Link>
             {sections.map((section) => (
               <div key={section.title} className="rounded-[0.85rem] border border-gold/15 bg-ivory/70 p-3">

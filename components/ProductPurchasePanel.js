@@ -4,12 +4,13 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/CartContext';
 import { getSizeOptions } from '@/lib/sizeConfig';
+import WishlistButton from '@/components/WishlistButton';
 
 function formatCurrency(value) {
   return `₹${Number(value || 0).toLocaleString('en-IN')}`;
 }
 
-export default function ProductPurchasePanel({ productId, name, price, discountPrice, image, stock, sizes = [], type, category }) {
+export default function ProductPurchasePanel({ productId, name, price, discountPrice, image, stock, sizes = [], type, category, slug }) {
   const { addToCart } = useCart();
   const router = useRouter();
   const sizeRowRef = useRef(null);
@@ -136,7 +137,7 @@ export default function ProductPurchasePanel({ productId, name, price, discountP
           </button>
         </div>
       </div>
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <button
           type="button"
           onClick={handleAddToCart}
@@ -154,6 +155,17 @@ export default function ProductPurchasePanel({ productId, name, price, discountP
         >
           Buy Now
         </button>
+        <WishlistButton
+          product={{
+            productId: String(productId),
+            slug,
+            name,
+            image,
+            price,
+            discountPrice,
+          }}
+          className="border border-gold/25 bg-white/80 hover:border-gold hover:bg-white self-center sm:self-auto"
+        />
       </div>
     </div>
   );

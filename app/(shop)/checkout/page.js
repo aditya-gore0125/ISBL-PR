@@ -160,6 +160,7 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: items.map((item) => ({ productId: item.productId, size: item.size ?? null, quantity: item.quantity })),
+          shippingAddress: { ...address },
         }),
       });
       const result = await response.json();

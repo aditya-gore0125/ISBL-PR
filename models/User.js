@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+userSchema.index(
+  { phone: 1 },
+  { unique: true, partialFilterExpression: { phone: { $type: 'string', $gt: '' } } }
+);
+
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 export default User;
