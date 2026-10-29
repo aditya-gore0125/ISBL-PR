@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import { normalizePhone } from '@/lib/phone';
 import { sanitizeRedirectPath } from '@/lib/utils';
 
 const initialForm = {
@@ -34,8 +35,11 @@ function SignupForm() {
       nextErrors.email = 'Enter a valid email address.';
     }
 
-    if (form.phone && !/^[6-9]\d{9}$/.test(form.phone.trim())) {
-      nextErrors.phone = 'Enter a valid 10-digit mobile number.';
+    if (form.phone.trim()) {
+      const norm = normalizePhone(form.phone.trim());
+      if (!norm) {
+        nextErrors.phone = 'Enter a valid 10-digit mobile number.';
+      }
     }
 
     if (form.password.length < 8) {
@@ -84,11 +88,7 @@ function SignupForm() {
 
       if (!response.ok) {
         const message = data?.message || 'Unable to create account.';
-        if (response.status === 409) {
-          setSubmitError('This email is already registered. Please sign in instead.');
-        } else {
-          setSubmitError(message);
-        }
+        setSubmitError(message);
         return;
       }
 
@@ -103,7 +103,7 @@ function SignupForm() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="rounded-[1.5rem] border border-gold/15 bg-white/90 p-8 shadow-soft sm:p-10">
+      <div className="rounded-[1.5rem] border border-gold/15 bg-white/90 p-6 shadow-soft sm:p-10">
         <div className="mb-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">Create account</p>
           <h1 className="mt-3 font-fraunces text-4xl text-charcoal">Sign up</h1>
@@ -141,12 +141,15 @@ function SignupForm() {
               <span className="text-sm font-medium text-charcoal/80">Phone</span>
               <input
                 type="tel"
+                inputMode="tel"
+                maxLength={15}
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
                 className="mt-2 h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none transition focus:border-gold"
                 placeholder="9876543210"
               />
+              <p className="mt-1 text-xs text-charcoal/60">10-digit mobile (optional)</p>
               {errors.phone ? <p role="alert" aria-live="polite" className="mt-1 text-xs text-maroon">{errors.phone}</p> : null}
             </label>
           </div>

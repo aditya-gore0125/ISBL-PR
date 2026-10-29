@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import { normalizePhone } from '@/lib/phone';
 import { sanitizeRedirectPath } from '@/lib/utils';
 
 const initialForm = {
@@ -22,10 +23,20 @@ function LoginForm() {
 
   const validate = () => {
     const nextErrors = {};
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const trimmed = form.email.trim();
 
-    if (!emailPattern.test(form.email.trim())) {
-      nextErrors.email = 'Enter a valid email address.';
+    if (!trimmed) {
+      nextErrors.email = 'Enter your email or mobile number.';
+    } else if (trimmed.includes('@')) {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(trimmed)) {
+        nextErrors.email = 'Enter a valid email address.';
+      }
+    } else {
+      const norm = normalizePhone(trimmed);
+      if (!norm) {
+        nextErrors.email = 'Enter a valid 10-digit mobile number.';
+      }
     }
 
     if (!form.password) {
@@ -63,7 +74,7 @@ function LoginForm() {
       });
 
       if (result?.error) {
-        setSubmitError('Invalid email or password.');
+        setSubmitError('Invalid email, phone, or password.');
         return;
       }
 
@@ -92,7 +103,7 @@ function LoginForm() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="rounded-[1.5rem] border border-gold/15 bg-white/90 p-8 shadow-soft sm:p-10">
+      <div className="rounded-[1.5rem] border border-gold/15 bg-white/90 p-6 shadow-soft sm:p-10">
         <div className="mb-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">Welcome back</p>
           <h1 className="mt-3 font-fraunces text-4xl text-charcoal">Sign in</h1>
@@ -100,14 +111,15 @@ function LoginForm() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <label className="block">
-            <span className="text-sm font-medium text-charcoal/80">Email</span>
+            <span className="text-sm font-medium text-charcoal/80">Email or phone</span>
             <input
-              type="email"
+              type="text"
               name="email"
+              autoComplete="username"
               value={form.email}
               onChange={handleChange}
               className="mt-2 h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none transition focus:border-gold"
-              placeholder="name@example.com"
+              placeholder="name@example.com or mobile"
             />
             {errors.email ? <p role="alert" aria-live="polite" className="mt-1 text-xs text-maroon">{errors.email}</p> : null}
           </label>
@@ -117,6 +129,7 @@ function LoginForm() {
             <input
               type="password"
               name="password"
+              autoComplete="current-password"
               value={form.password}
               onChange={handleChange}
               className="mt-2 h-12 w-full rounded-[1rem] border border-gold/20 bg-ivory px-4 text-sm text-charcoal outline-none transition focus:border-gold"

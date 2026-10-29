@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import AddToCartButton from '@/components/AddToCartButton';
 import SafeImage from '@/components/SafeImage';
+import WishlistButton from '@/components/WishlistButton';
 
 export default function ProductCard({ product }) {
   const imageUrl = product.images?.[0] || 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=900&q=80';
@@ -13,6 +14,19 @@ export default function ProductCard({ product }) {
           <SafeImage src={imageUrl} alt={product.name} width={900} height={1125} sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 25vw" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
         </Link>
         {hasDiscount ? <span className="absolute left-3 top-3 rounded-full bg-maroon px-3 py-1 text-xs font-semibold uppercase text-white">Sale</span> : null}
+        <div className="absolute right-2 top-2 z-10">
+          <WishlistButton
+            product={{
+              productId: String(product._id || product.productId),
+              slug: product.slug,
+              name: product.name,
+              image: imageUrl,
+              price: product.price,
+              discountPrice: product.discountPrice,
+            }}
+            className="border border-gold/20 bg-white/85 shadow-sm backdrop-blur-xs hover:border-gold hover:bg-white"
+          />
+        </div>
       </div>
       <div className="flex flex-1 flex-col p-5">
         <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-gold">{product.category}</p>

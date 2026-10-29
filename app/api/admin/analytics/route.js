@@ -130,12 +130,12 @@ export async function GET(request) {
         { $sort: { revenue: -1 } },
       ]),
       Order.aggregate([
-        { $match: { createdAt: range } },
+        { $match: { createdAt: range, $nor: [{ orderStatus: 'pending', paymentStatus: 'pending' }] } },
         { $group: { _id: { $ifNull: ['$orderStatus', 'pending'] }, count: { $sum: 1 } } },
         { $sort: { count: -1 } },
       ]),
       Order.aggregate([
-        { $match: { createdAt: range } },
+        { $match: { createdAt: range, $nor: [{ orderStatus: 'pending', paymentStatus: 'pending' }] } },
         { $group: { _id: { $ifNull: ['$paymentStatus', 'pending'] }, count: { $sum: 1 } } },
         { $sort: { count: -1 } },
       ]),
