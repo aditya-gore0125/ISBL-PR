@@ -82,7 +82,7 @@ export async function PUT(request) {
         _id: { $ne: session.user.id },
       }).lean();
       if (duplicateUser) {
-        return NextResponse.json({ message: 'This phone number is already registered.' }, { status: 409 });
+        return NextResponse.json({ message: "This phone number can't be used. Please check it or try a different one." }, { status: 409 });
       }
     }
 
@@ -105,7 +105,7 @@ export async function PUT(request) {
   } catch (error) {
     if (error?.code === 11000) {
       if (error.keyPattern?.phone || (error.message && error.message.includes('phone'))) {
-        return NextResponse.json({ message: 'This phone number is already registered.' }, { status: 409 });
+        return NextResponse.json({ message: "This phone number can't be used. Please check it or try a different one." }, { status: 409 });
       }
     }
     console.error('Account PUT error', error);

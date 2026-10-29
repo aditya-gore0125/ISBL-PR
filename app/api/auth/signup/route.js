@@ -24,7 +24,7 @@ export async function POST(request) {
     if (phone) {
       const existingPhone = await User.findOne({ phone }).lean();
       if (existingPhone) {
-        return Response.json({ message: 'This phone number is already registered.' }, { status: 409 });
+        return Response.json({ message: "This phone number can't be used. Please check it or try a different one." }, { status: 409 });
       }
     }
 
@@ -52,7 +52,7 @@ export async function POST(request) {
   } catch (error) {
     if (error?.code === 11000) {
       if (error.keyPattern?.phone || (error.message && error.message.includes('phone'))) {
-        return Response.json({ message: 'This phone number is already registered.' }, { status: 409 });
+        return Response.json({ message: "This phone number can't be used. Please check it or try a different one." }, { status: 409 });
       }
       if (error.keyPattern?.email || (error.message && error.message.includes('email'))) {
         return Response.json({ message: 'This email is already registered.' }, { status: 409 });
