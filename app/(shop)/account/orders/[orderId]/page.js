@@ -28,7 +28,7 @@ export default async function AccountOrderPage({ params }) {
   if (!order) notFound();
 
   const currentUser = await User.findById(session.user.id).select('role').lean();
-  const isOwner = order.user.toString() === session.user.id;
+  const isOwner = order.user?.toString() === session.user.id;
   if (!isOwner && currentUser?.role !== 'admin') notFound();
 
   const currentStep = orderTimeline.indexOf(order.orderStatus || 'pending');
@@ -88,13 +88,17 @@ export default async function AccountOrderPage({ params }) {
         <aside className="space-y-6">
           <section className="rounded-[1.25rem] border border-gold/15 bg-white/90 p-6">
             <h2 className="font-fraunces text-xl text-charcoal">Shipping address</h2>
-            <div className="mt-4 text-sm leading-6 text-charcoal/75">
-              <p className="font-semibold text-charcoal">{order.shippingAddress.fullName}</p>
-              <p>{order.shippingAddress.addressLine1}</p>
-              {order.shippingAddress.addressLine2 ? <p>{order.shippingAddress.addressLine2}</p> : null}
-              <p>{order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}</p>
-              <p>{order.shippingAddress.phone}</p>
-            </div>
+            {order.shippingAddress ? (
+              <div className="mt-4 text-sm leading-6 text-charcoal/75">
+                <p className="font-semibold text-charcoal">{order.shippingAddress.fullName}</p>
+                <p>{order.shippingAddress.addressLine1}</p>
+                {order.shippingAddress.addressLine2 ? <p>{order.shippingAddress.addressLine2}</p> : null}
+                <p>{order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}</p>
+                <p>{order.shippingAddress.phone}</p>
+              </div>
+            ) : (
+              <p className="mt-4 text-sm italic text-charcoal/60">No shipping address recorded.</p>
+            )}
           </section>
           <section className="rounded-[1.25rem] border border-gold/15 bg-white/90 p-6">
             <h2 className="font-fraunces text-xl text-charcoal">Delivery tracking</h2>
