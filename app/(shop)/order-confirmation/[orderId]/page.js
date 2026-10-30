@@ -32,7 +32,7 @@ export default async function OrderConfirmationPage({ params }) {
   if (!order) notFound();
 
   const currentUser = await User.findById(session.user.id).select('role').lean();
-  const isOwner = order.user.toString() === session.user.id;
+  const isOwner = order.user?.toString() === session.user.id;
   if (!isOwner && currentUser?.role !== 'admin') notFound();
   const paymentMessage = order.paymentStatus === 'paid'
     ? order.needsReview
@@ -57,13 +57,17 @@ export default async function OrderConfirmationPage({ params }) {
             <div className="mt-6 space-y-4 text-sm text-charcoal/75">
               <div className="rounded-[1rem] bg-white p-4">
                 <p className="font-semibold text-charcoal">Shipping address</p>
-                <p className="mt-2 leading-7">
-                  {order.shippingAddress.fullName}<br />
-                  {order.shippingAddress.addressLine1}<br />
-                  {order.shippingAddress.addressLine2 ? <>{order.shippingAddress.addressLine2}<br /></> : null}
-                  {order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}<br />
-                  {order.shippingAddress.phone}
-                </p>
+                {order.shippingAddress ? (
+                  <p className="mt-2 leading-7">
+                    {order.shippingAddress.fullName}<br />
+                    {order.shippingAddress.addressLine1}<br />
+                    {order.shippingAddress.addressLine2 ? <>{order.shippingAddress.addressLine2}<br /></> : null}
+                    {order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}<br />
+                    {order.shippingAddress.phone}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-sm italic text-charcoal/60">No shipping address recorded.</p>
+                )}
               </div>
               <div className="rounded-[1rem] bg-white p-4">
                 <p className="font-semibold text-charcoal">Items</p>
